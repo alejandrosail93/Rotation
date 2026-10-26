@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RotationIQ">
+<meta name="theme-color" content="#07090E">
+<meta name="description" content="Rotazione settoriale e geografica: dove si stanno muovendo i capitali tra settori USA, paesi sviluppati ed emergenti.">
+<title>RotationIQ</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2307090E'/%3E%3Cpath d='M16 4v24M4 16h24' stroke='%231C2A3C' stroke-width='2'/%3E%3Cpath d='M9 22c0-7 3-12 10-13' stroke='%2300DFA0' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='9' r='3' fill='%2300DFA0'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090E;--s1:#0C1018;--s2:#111822;--s3:#18222E;--bd:#1C2A3C;--bd2:#263445;
+  --txt:#C4D4E8;--mut:#4E6070;--mut2:#6E8196;
+  --bull:#00DFA0;--bear:#FF3F5A;--warn:#FFB820;--blue:#38A0FF;--violet:#9A7BFF;
+  --q-lead:#00DFA0;--q-weak:#FFB820;--q-lag:#FF3F5A;--q-imp:#38A0FF;
+  --mono:'DM Mono',ui-monospace,monospace;--disp:'Unbounded',system-ui,sans-serif;
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--txt);font-family:var(--mono);min-height:100vh;overflow-x:hidden;font-size:13px;line-height:1.45}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(56,160,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(56,160,255,.022) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+button,input,select{font-family:var(--mono);font-size:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none;text-align:inherit}
+::-webkit-scrollbar{height:6px;width:6px}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+.pos{color:var(--bull)}.neg{color:var(--bear)}.flat{color:var(--mut)}
+b{font-weight:500}
+
+/* ══ HEADER ══ */
+.hdr{position:relative;z-index:60;background:linear-gradient(160deg,#07090E 0%,#0C1520 55%,#061210 100%);border-bottom:1px solid var(--bd);padding:calc(var(--st) + 12px) 14px 11px}
+.hdr::after{content:'';position:absolute;bottom:0;left:6%;right:6%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,223,160,.22),transparent)}
+.hdr-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-family:var(--disp);font-weight:900;font-size:clamp(15px,4.4vw,20px);letter-spacing:-.03em;color:#fff;line-height:1.05}
+.logo em{color:var(--bull);font-style:normal}
+.logo-sub{font-size:7.5px;letter-spacing:.19em;color:var(--mut);text-transform:uppercase;margin-top:3px}
+.hdr-r{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.sync{display:flex;align-items:center;gap:7px;font-size:9.5px;color:var(--mut);letter-spacing:.04em}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--mut);transition:.35s;flex-shrink:0}
+.dot.ok{background:var(--bull);box-shadow:0 0 8px rgba(0,223,160,.55)}
+.dot.err{background:var(--bear);box-shadow:0 0 8px rgba(255,63,90,.5)}
+.dot.load{background:var(--warn);animation:pulse 1s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.icon-btn{width:30px;height:30px;border:1px solid var(--bd2);border-radius:3px;background:var(--s2);color:var(--mut);display:grid;place-items:center;transition:.2s;flex-shrink:0}
+.icon-btn:hover{color:var(--txt);border-color:var(--blue)}
+.icon-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
+.icon-btn.spin svg{animation:rot 1s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ══ TOOLBAR ══ */
+.bar{position:sticky;top:0;z-index:50;background:rgba(7,9,14,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:9px 14px 8px;border-bottom:1px solid var(--bd)}
+.bar-in{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.chips{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px;max-width:100%}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:6px 10px;border:1px solid var(--bd2);border-radius:3px;background:var(--s2);color:var(--mut2);font-size:11px;letter-spacing:.04em;white-space:nowrap;transition:.18s;flex-shrink:0}
+.chip:hover{color:var(--txt)}
+.chip.on{background:rgba(56,160,255,.13);border-color:rgba(56,160,255,.5);color:var(--blue);font-weight:500}
+.chip.alt.on{background:rgba(154,123,255,.13);border-color:rgba(154,123,255,.5);color:var(--violet)}
+.seg{display:inline-flex;border:1px solid var(--bd2);border-radius:3px;overflow:hidden;background:var(--s2);flex-shrink:0}
+.seg button{padding:6px 10px;font-size:10.5px;letter-spacing:.04em;color:var(--mut2);white-space:nowrap;border-right:1px solid var(--bd2)}
+.seg button:last-child{border-right:none}
+.seg button.on{background:rgba(56,160,255,.14);color:var(--blue);font-weight:500}
+.gran{font-size:9.5px;color:var(--mut);letter-spacing:.04em}
+.gran b{color:var(--txt);font-weight:400}
+.spacer{flex:1 1 auto}
+.custom{display:none;gap:7px;align-items:center;flex-wrap:wrap;width:100%}
+.custom.show{display:flex}
+.custom input[type=date]{background:var(--s2);border:1px solid var(--bd2);border-radius:3px;padding:5px 7px;font-size:11px;color:var(--txt);color-scheme:dark}
+.mini-lbl{font-size:9px;color:var(--mut);letter-spacing:.1em;text-transform:uppercase}
+.btn{padding:6px 12px;border:1px solid rgba(56,160,255,.4);border-radius:3px;background:rgba(56,160,255,.12);color:var(--blue);font-size:10.5px;letter-spacing:.06em;transition:.18s}
+.btn:hover{background:rgba(56,160,255,.2)}
+.btn.ghost{border-color:var(--bd2);background:var(--s2);color:var(--mut2)}
+.btn.ghost:hover{color:var(--txt)}
+.prog{height:2px;background:var(--s3);position:relative;overflow:hidden}
+.prog i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--blue),var(--bull));width:0;transition:width .3s}
+.prog.done{opacity:0;transition:opacity .5s}
+
+/* ══ SHELL ══ */
+.app{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:14px 14px calc(var(--sb) + 44px)}
+.h2{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:-.01em;color:#fff}
+.sub{font-size:9.5px;color:var(--mut);letter-spacing:.03em;line-height:1.5}
+.sec-head{display:flex;align-items:baseline;gap:10px;margin:0 0 10px;flex-wrap:wrap}
+.panel{border:1px solid var(--bd);border-radius:4px;background:var(--s1)}
+
+/* ══ SINTESI FLUSSI ══ */
+.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.35fr);gap:10px;margin-bottom:16px}
+.gauge{padding:11px 12px 10px;display:flex;flex-direction:column;gap:6px;min-width:0;text-align:left;transition:.18s}
+.g-k{font-size:8px;letter-spacing:.16em;color:var(--mut);text-transform:uppercase}
+.g-t{font-size:11px;color:var(--txt);line-height:1.3}
+.g-t span{color:var(--mut)}
+.g-row{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+.g-v{font-size:18px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.g-verdict{font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:2px;white-space:nowrap}
+.g-verdict.pos{background:rgba(0,223,160,.1)}.g-verdict.neg{background:rgba(255,63,90,.1)}.g-verdict.flat{background:rgba(78,96,112,.15)}
+.g-spark{height:34px;width:100%;display:block}
+.g-foot{font-size:8.5px;color:var(--mut);letter-spacing:.03em}
+.movers{padding:11px 12px 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;min-width:0}
+.movers .g-k{grid-column:1/-1;display:flex;justify-content:space-between;gap:6px}
+.mv-col{min-width:0}
+.mv-h{font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin:3px 0 4px}
+.mv{display:flex;align-items:center;gap:6px;width:100%;padding:3px 0;min-width:0;border-radius:2px}
+.mv:hover .mv-t{color:#fff}
+.mv-t{font-size:11.5px;font-weight:500;color:var(--txt);width:40px;flex-shrink:0}
+.mv-n{font-size:9px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.qdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ══ TABS ══ */
+.tabbar{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;border-bottom:1px solid var(--bd);margin:0 0 14px;flex-wrap:wrap}
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none;max-width:100%}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 12px 9px;font-size:11px;letter-spacing:.05em;color:var(--mut2);border-bottom:2px solid transparent;white-space:nowrap;transition:.18s;position:relative;top:1px}
+.tab:hover{color:var(--txt)}
+.tab.on{color:#fff;border-bottom-color:var(--bull)}
+.tabbar .seg{margin-bottom:6px}
+
+/* ══ RRG ══ */
+.rrg-wrap{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:12px;align-items:start}
+.rrg-box{position:relative;padding:6px}
+.rrg-svg{display:block;width:100%;user-select:none;-webkit-user-select:none}
+.rrg-svg text{font-family:'DM Mono',ui-monospace,monospace}
+.rrg-svg g.it{cursor:pointer;transition:opacity .15s}
+.rrg-svg.dim g.it{opacity:.13}
+.rrg-svg.dim g.it.hl{opacity:1}
+.rrg-ctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px 4px}
+.rrg-ctl input[type=range]{accent-color:#38A0FF;width:130px}
+.tip{position:absolute;z-index:10;min-width:190px;max-width:240px;background:rgba(12,16,24,.97);border:1px solid var(--bd2);border-radius:4px;padding:9px 10px;font-size:10px;line-height:1.55;box-shadow:0 8px 24px rgba(0,0,0,.5);pointer-events:auto}
+.tip-t{font-size:13px;font-weight:500;color:#fff}
+.tip .btn{margin-top:7px;width:100%;text-align:center}
+.quads{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.quad{padding:8px 9px;min-height:84px;border-top:2px solid var(--qc)}
+.quad-h{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--qc);display:flex;justify-content:space-between}
+.quad-d{font-size:8.5px;color:var(--mut);margin:2px 0 6px;line-height:1.4}
+.qi{display:flex;align-items:center;gap:6px;width:100%;padding:2.5px 3px;border-radius:2px;font-size:11px}
+.qi:hover,.qi.hl{background:var(--s3)}
+.qi-t{font-weight:500;color:var(--txt);width:38px;flex-shrink:0}
+.qi-n{font-size:9px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.arrow{width:11px;height:11px;flex-shrink:0;display:inline-block;transition:transform .2s}
+.legend-q{display:flex;gap:12px;flex-wrap:wrap;font-size:9px;color:var(--mut);letter-spacing:.04em}
+.legend-q span{display:flex;align-items:center;gap:5px}
+.explain{font-size:9.5px;color:var(--mut);line-height:1.7;margin-top:10px;padding:10px 12px}
+.explain b{color:var(--txt);font-weight:400}
+
+/* ══ HEATMAP ══ */
+.heat-ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.heat-scroll{overflow-x:auto;border:1px solid var(--bd);border-radius:4px;background:var(--s1)}
+table.heat{border-collapse:collapse;width:100%;min-width:720px;font-variant-numeric:tabular-nums}
+.heat th{position:sticky;top:0;background:var(--s2);font-size:8px;letter-spacing:.13em;color:var(--mut);text-transform:uppercase;font-weight:400;padding:8px 6px;text-align:right;border-bottom:1px solid var(--bd2);white-space:nowrap;cursor:pointer;user-select:none}
+.heat th.l{text-align:left}
+.heat th.on{color:var(--blue)}
+.heat th.on::after{content:' ▾'}
+.heat th.on.asc::after{content:' ▴'}
+.heat td{padding:0 6px;height:34px;border-bottom:1px solid rgba(28,42,60,.55);text-align:right;font-size:11.5px;white-space:nowrap}
+.heat tr.row{cursor:pointer}
+.heat tr.row:hover td{filter:brightness(1.25)}
+.heat tr.bench td{color:var(--mut);font-style:italic;background:rgba(24,34,46,.35)}
+.heat td.l{text-align:left}
+.heat td.n{color:var(--mut);font-size:10px;width:26px}
+.heat td.t{font-weight:500;color:#fff;width:52px}
+.heat td.nm{color:var(--txt);font-size:10.5px;max-width:190px;overflow:hidden;text-overflow:ellipsis}
+.heat td.c{color:#E6EEF7}
+.heat td.acc{font-size:11px}
+.heat td.sep,.heat th.sep{border-left:1px solid var(--bd2)}
+.heat .stick{position:sticky;left:0;z-index:2;background:var(--s1);box-shadow:1px 0 0 var(--bd)}
+.heat th.stick{z-index:3;background:var(--s2)}
+.catchip{font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;padding:2px 5px;border-radius:2px;margin-left:6px;vertical-align:1px}
+.cat-sectors{background:rgba(56,160,255,.12);color:var(--blue)}
+.cat-developed{background:rgba(0,223,160,.11);color:var(--bull)}
+.cat-emerging{background:rgba(154,123,255,.13);color:var(--violet)}
+.qchip{font-size:8px;letter-spacing:.06em;text-transform:uppercase;padding:2.5px 6px;border-radius:2px;display:inline-flex;align-items:center;gap:5px}
+
+/* ══ CONFRONTO ══ */
+.cmp-wrap{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:12px;align-items:start}
+.cmp-chart{height:min(62vh,520px);min-height:320px;position:relative}
+.cmp-leg{max-height:min(62vh,520px);overflow-y:auto;padding:6px}
+.lg{display:flex;align-items:center;gap:7px;width:100%;padding:4px 6px;border-radius:2px;font-size:11px}
+.lg:hover,.lg.pin{background:var(--s3)}
+.lg-sw{width:14px;height:3px;border-radius:2px;flex-shrink:0}
+.lg-t{font-weight:500;width:40px;flex-shrink:0;color:var(--txt)}
+.lg-n{font-size:9px;color:var(--mut);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lg-v{font-variant-numeric:tabular-nums;font-size:11px}
+.lg.bench .lg-t,.lg.bench .lg-v{color:var(--mut)}
+.cmp-date{font-size:9px;color:var(--mut);padding:2px 6px 6px;letter-spacing:.04em}
+
+/* ══ CARD GRID ══ */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:11px;margin-bottom:18px}
+.card{border:1px solid var(--bd);border-radius:4px;background:var(--s1);padding:11px 11px 9px;display:flex;flex-direction:column;gap:7px;transition:.18s;position:relative;overflow:hidden;width:100%}
+.card:hover{border-color:var(--bd2);background:var(--s2)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--qc,transparent);opacity:.7}
+.c-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.c-t{font-weight:500;font-size:13px;color:#fff;letter-spacing:.02em;line-height:1.1}
+.c-n{font-size:9.5px;color:var(--mut);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px}
+.c-chart{height:84px;width:100%;position:relative;background:rgba(24,34,46,.28);border-radius:2px;overflow:hidden}
+.c-chart .ph{position:absolute;inset:0;display:grid;place-items:center;font-size:9px;color:var(--mut);letter-spacing:.1em}
+.c-bot{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+.c-perf{font-size:16px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.c-rel{font-size:9.5px;margin-top:4px;font-variant-numeric:tabular-nums}
+.c-px{font-size:9.5px;color:var(--mut);text-align:right;font-variant-numeric:tabular-nums;line-height:1.3}
+.card.dead{opacity:.62}
+.grid-title{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin:2px 0 8px}
+
+/* ══ MODAL ══ */
+.modal{position:fixed;inset:0;z-index:200;background:rgba(4,6,10,.92);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:none;flex-direction:column}
+.modal.show{display:flex}
+.m-hd{display:flex;align-items:center;gap:11px;padding:calc(var(--st) + 12px) 14px 11px;border-bottom:1px solid var(--bd);background:var(--s1);flex-shrink:0}
+.m-t{font-family:var(--disp);font-weight:700;font-size:16px;color:#fff;letter-spacing:-.02em}
+.m-n{font-size:10px;color:var(--mut);letter-spacing:.04em;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.m-perf{font-size:19px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.02em;text-align:right}
+.m-perf small{display:block;font-size:10px;font-weight:400;margin-top:2px}
+.m-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px calc(var(--sb) + 24px)}
+.m-in{max-width:1180px;margin:0 auto}
+.m-chart{height:min(46vh,400px);min-height:240px;border:1px solid var(--bd);border-radius:4px 4px 0 0;background:var(--s1);position:relative}
+.m-rs{height:150px;border:1px solid var(--bd);border-top:none;border-radius:0 0 4px 4px;background:var(--s1);position:relative}
+.m-lbl{position:absolute;top:6px;left:10px;z-index:5;font-size:9px;color:var(--mut);letter-spacing:.06em;pointer-events:none;text-transform:uppercase}
+.m-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:4px;overflow:hidden;margin-top:12px}
+.st{background:var(--s1);padding:9px 10px}
+.st-k{font-size:7.5px;letter-spacing:.15em;color:var(--mut);text-transform:uppercase}
+.st-v{font-size:12.5px;margin-top:4px;font-variant-numeric:tabular-nums;color:#fff}
+.st-v.pos{color:var(--bull)}.st-v.neg{color:var(--bear)}
+.m-legend{position:absolute;top:22px;left:10px;z-index:5;font-size:10px;color:var(--mut);pointer-events:none;line-height:1.6;text-shadow:0 1px 4px #07090E,0 0 6px #07090E;max-width:calc(100% - 76px)}
+.m-legend b{color:var(--txt);font-weight:400}
+.m-nav{display:flex;gap:7px;margin-top:12px;align-items:center;flex-wrap:wrap}
+.note{font-size:9.5px;color:var(--mut);line-height:1.65;margin-top:12px}
+.note b{color:var(--txt);font-weight:400}
+
+.banner{border:1px solid rgba(255,184,32,.28);background:rgba(255,184,32,.06);border-radius:4px;padding:9px 12px;font-size:10.5px;color:var(--warn);margin-bottom:12px;display:none;align-items:center;gap:10px;line-height:1.5}
+.banner.show{display:flex}
+.banner.info{border-color:rgba(56,160,255,.28);background:rgba(56,160,255,.06);color:var(--blue)}
+.retry{font-size:9px;letter-spacing:.08em;color:var(--warn);border:1px solid rgba(255,184,32,.3);background:rgba(255,184,32,.08);padding:3px 8px;border-radius:2px;flex-shrink:0}
+.empty{padding:40px 16px;text-align:center;color:var(--mut);font-size:10.5px;letter-spacing:.06em}
+.foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--bd);font-size:9px;color:var(--mut);line-height:1.8;letter-spacing:.03em}
+
+@media(max-width:980px){
+  .flow{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .movers{grid-column:1/-1}
+  .rrg-wrap,.cmp-wrap{grid-template-columns:minmax(0,1fr)}
+  .cmp-leg{max-height:none}
+  #cmpLeg{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:0 10px}
+}
+@media(max-width:640px){
+  .flow{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+  .gauge{padding:9px 10px}
+  .g-v{font-size:15px}
+  .g-row{flex-wrap:wrap;gap:4px 8px}
+  .g-verdict{font-size:8px;padding:2px 5px}
+  .gauge:nth-child(3){grid-column:1/-1}
+  .quads{grid-template-columns:1fr}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:9px}
+  .c-chart{height:66px}
+  .c-perf{font-size:14px}
+  .c-n{max-width:88px}
+  .m-chart{height:42vh}
+  .m-legend{font-size:9px}
+  .m-t{font-size:14px}.m-perf{font-size:16px}
+  .cmp-chart{height:52vh}
+  .tabbar .seg{width:100%;margin-bottom:8px}
+  .tabbar .seg button{flex:1;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-in">
+    <div>
+      <div class="logo">Rotation<em>IQ</em></div>
+      <div class="logo-sub">Dove si muovono i capitali</div>
+    </div>
+    <div class="hdr-r">
+      <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">avvio…</span></div>
+      <button class="icon-btn" id="btnReload" title="Ricarica dati (ignora cache)" aria-label="Ricarica dati">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="chips" id="periodChips"></div>
+    <span class="gran" id="rangeTxt"></span>
+    <span class="spacer"></span>
+    <div class="seg" id="relSeg" title="Relativa: rendimento in eccesso rispetto al benchmark. Assoluta: rendimento semplice.">
+      <button data-rel="1">vs benchmark</button><button data-rel="0">assoluta</button>
+    </div>
+    <button class="chip alt on" id="btnTR" title="Total return: prezzi aggiustati per dividendi e split">TR</button>
+    <button class="chip" id="btnCustom">Range…</button>
+    <div class="custom" id="customBox">
+      <span class="mini-lbl">da</span><input type="date" id="dFrom">
+      <span class="mini-lbl">a</span><input type="date" id="dTo">
+      <button class="btn" id="btnApply">Applica</button>
+      <button class="btn ghost" id="btnClear">Annulla</button>
+    </div>
+  </div>
+</div>
+<div class="prog" id="prog"><i></i></div>
+
+<main class="app">
+  <div class="banner" id="banner"><span id="bannerTxt"></span><span class="spacer"></span><button class="retry" id="btnRetryFailed">riprova</button></div>
+
+  <section class="flow" id="flow" aria-label="Sintesi dei flussi"></section>
+
+  <div class="tabbar">
+    <div class="tabs" id="tabs"></div>
+    <div class="seg" id="scopeSeg"></div>
+  </div>
+  <div class="banner info" id="warn"><span id="warnTxt"></span></div>
+
+  <section data-view="rrg">
+    <div class="rrg-wrap">
+      <div>
+        <div class="panel rrg-box" id="rrgBox">
+          <div class="rrg-ctl">
+            <span class="h2" id="rrgTitle">Mappa di rotazione</span>
+            <span class="spacer"></span>
+            <label class="gran" for="tailRange">scia <b id="tailTxt">6</b> sett.</label>
+            <input type="range" id="tailRange" min="1" max="20" value="6">
+          </div>
+          <svg class="rrg-svg" id="rrgSvg" role="img" aria-label="Grafico di rotazione relativa"></svg>
+          <div class="tip" id="tip" hidden></div>
+        </div>
+      </div>
+      <div class="quads" id="quads"></div>
+    </div>
+    <div class="panel explain">
+      <b>Come si legge.</b> Asse orizzontale: <b>forza relativa</b> rispetto al benchmark (a destra = sta battendo il mercato).
+      Asse verticale: <b>momentum</b> della forza relativa (in alto = il vantaggio sta aumentando).
+      Le scie mostrano le ultime settimane e ruotano di norma in <b>senso orario</b>:
+      <b style="color:var(--q-imp)">In miglioramento</b> → <b style="color:var(--q-lead)">Leader</b> →
+      <b style="color:var(--q-weak)">In indebolimento</b> → <b style="color:var(--q-lag)">Ritardatari</b>.
+      I capitali <b>stanno entrando</b> dove le scie puntano in alto a destra, <b>stanno uscendo</b> dove puntano in basso a sinistra.
+      Distanza dal centro = intensità. Dati settimanali total return, indipendenti dal periodo selezionato.
+    </div>
+  </section>
+
+  <section data-view="heat" hidden>
+    <div class="heat-ctl">
+      <span class="h2">Forza relativa per orizzonte</span>
+      <span class="sub" id="heatSub"></span>
+    </div>
+    <div class="heat-scroll"><table class="heat" id="heat"></table></div>
+    <div class="note">
+      <b>Accel.</b> = rendimento dell'ultimo mese meno la media mensile degli ultimi 3 mesi: positivo significa che il flusso <b>sta accelerando</b> adesso,
+      negativo che sta <b>rallentando</b> anche se il dato a 3 mesi è ancora buono. Clicca sulle intestazioni per ordinare, su una riga per il grafico.
+    </div>
+  </section>
+
+  <section data-view="cmp" hidden>
+    <div class="sec-head"><span class="h2">Performance a confronto</span><span class="sub" id="cmpSub"></span></div>
+    <div class="cmp-wrap">
+      <div class="panel cmp-chart" id="cmpChart"></div>
+      <div class="panel cmp-leg"><div class="cmp-date" id="cmpDate"></div><div id="cmpLeg"></div></div>
+    </div>
+    <div class="note">Tutte le linee partono da 0% all'inizio del periodo. In modalità <b>vs benchmark</b> la linea piatta a 0 è il benchmark stesso: sopra = sta attirando capitali rispetto al mercato. Passa sopra (o tocca) un nome nella legenda per evidenziarlo, clicca per fissarlo.</div>
+  </section>
+
+  <section data-view="cards" hidden>
+    <div id="cardsRoot"></div>
+  </section>
+
+  <div class="foot">
+    Dati: Yahoo Finance (chart v8) via CORS proxy pubblico &middot; cache locale 15 min &middot; nessun dato lascia il browser.<br>
+    Benchmark: <b>SPY</b> per i settori USA, <b>ACWI</b> (MSCI All Country World) per i paesi. Mappa di rotazione: forza relativa = EMA10/EMA30 del rapporto settimanale ETF/benchmark, momentum = variazione a 4 settimane, entrambi normalizzati a metà tra la volatilità del singolo ETF e quella del gruppo (approssimazione del metodo RRG, non la formula proprietaria).<br>
+    Strumento informativo, non consulenza finanziaria.
+  </div>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mT">
+  <div class="m-hd">
+    <button class="icon-btn" id="mClose" aria-label="Chiudi">
+      <svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <div style="flex:1;min-width:0">
+      <div class="m-t" id="mT">—</div>
+      <div class="m-n" id="mN">—</div>
+    </div>
+    <div class="m-perf" id="mPerf">—</div>
+  </div>
+  <div class="m-body"><div class="m-in">
+    <div class="m-chart" id="mChart"><div class="m-lbl">Prezzo</div><div class="m-legend" id="mLegend"></div></div>
+    <div class="m-rs" id="mRs"><div class="m-lbl" id="mRsLbl">Forza relativa</div></div>
+    <div class="m-stats" id="mStats"></div>
+    <div class="m-nav">
+      <button class="btn ghost" id="mPrev">&larr; precedente</button>
+      <button class="btn ghost" id="mNext">successivo &rarr;</button>
+      <span class="spacer"></span>
+      <span class="gran" id="mRank"></span>
+    </div>
+    <div class="note" id="mNote"></div>
+  </div></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   RotationIQ — configurazione
+   Per aggiungere/togliere ticker basta modificare gli array qui sotto.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const UNIVERSE = [
+  { id:'sectors', label:'Settori USA', short:'Settori', items:[
+    { t:'XLK',  n:'Technology',             style:'ciclico' },
+    { t:'XLF',  n:'Financials',             style:'ciclico' },
+    { t:'XLE',  n:'Energy',                 style:'ciclico' },
+    { t:'XLV',  n:'Health Care',            style:'difensivo' },
+    { t:'XLI',  n:'Industrials',            style:'ciclico' },
+    { t:'XLY',  n:'Consumer Discretionary', style:'ciclico' },
+    { t:'XLP',  n:'Consumer Staples',       style:'difensivo' },
+    { t:'XLU',  n:'Utilities',              style:'difensivo' },
+    { t:'XLB',  n:'Materials',              style:'ciclico' },
+    { t:'XLRE', n:'Real Estate',            style:'difensivo' },
+    { t:'XLC',  n:'Communication Services' }
+  ]},
+  { id:'developed', label:'Sviluppati', short:'Sviluppati', items:[
+    { t:'SPY', n:'USA' },
+    { t:'EWJ', n:'Giappone' },
+    { t:'EWG', n:'Germania' },
+    { t:'EWU', n:'Regno Unito' },
+    { t:'EWQ', n:'Francia' },
+    { t:'EWC', n:'Canada' },
+    { t:'EWA', n:'Australia' },
+    { t:'EWL', n:'Svizzera' },
+    { t:'EWI', n:'Italia' },
+    { t:'EFA', n:'MSCI EAFE — sviluppati ex-USA', agg:true }
+  ]},
+  { id:'emerging', label:'Emergenti', short:'Emergenti', items:[
+    { t:'MCHI', n:'Cina' },
+    { t:'INDA', n:'India' },
+    { t:'EWZ',  n:'Brasile' },
+    { t:'EWT',  n:'Taiwan' },
+    { t:'EWY',  n:'Corea del Sud' },
+    { t:'EWW',  n:'Messico' },
+    { t:'EZA',  n:'Sud Africa' },
+    { t:'EIDO', n:'Indonesia' },
+    { t:'EEM',  n:'MSCI Emerging Markets', agg:true }
+  ]}
+];
+
+/* Benchmark usati solo come riferimento (scaricati ma non mostrati come voci) */
+const EXTRA = [ { t:'ACWI', n:'MSCI ACWI — mondo' } ];
+
+/* Ambiti di confronto: chi confrontare e contro quale benchmark */
+const SCOPES = [
+  { id:'sectors',   label:'Settori',  cats:['sectors'],                        bench:'SPY'  },
+  { id:'countries', label:'Paesi',    cats:['developed','emerging'],           bench:'ACWI' },
+  { id:'all',       label:'Tutti',    cats:['sectors','developed','emerging'], bench:'ACWI' }
+];
+
+/* Indicatori sintetici dei flussi: rapporto tra due panieri equipesati */
+const GAUGES = [
+  { k:'Propensione al rischio', a:'ciclici', b:'difensivi',
+    A: () => UNIVERSE[0].items.filter(i => i.style === 'ciclico').map(i => i.t),
+    B: () => UNIVERSE[0].items.filter(i => i.style === 'difensivo').map(i => i.t),
+    up:'risk-on', down:'risk-off' },
+  { k:'Emergenti vs sviluppati', a:'EEM', b:'EFA', A: () => ['EEM'], B: () => ['EFA'],
+    up:'verso emergenti', down:'verso sviluppati' },
+  { k:'USA vs resto del mondo', a:'SPY', b:'EFA + EEM', A: () => ['SPY'], B: () => ['EFA','EEM'],
+    up:'verso USA', down:'fuori dagli USA' }
+];
+
+/* Periodi. gran = granularita' candele: d=giornaliere, w=settimanali, m=mensili */
+const PERIODS = [
+  { id:'1M',  label:'1M',  days:31,   gran:'d' },
+  { id:'3M',  label:'3M',  days:93,   gran:'d' },
+  { id:'6M',  label:'6M',  days:186,  gran:'d' },
+  { id:'YTD', label:'YTD', ytd:true,  gran:'d' },
+  { id:'1A',  label:'1A',  days:366,  gran:'w' },
+  { id:'2A',  label:'2A',  days:731,  gran:'w' },
+  { id:'5A',  label:'5A',  days:1827, gran:'w' },
+  { id:'MAX', label:'Max', max:true,  gran:'m' }
+];
+
+/* Orizzonti della tabella di forza relativa, in sedute */
+const HORIZONS = [
+  { id:'h1w', label:'1S', n:5 },
+  { id:'h1m', label:'1M', n:21 },
+  { id:'h3m', label:'3M', n:63 },
+  { id:'h6m', label:'6M', n:126 },
+  { id:'h1y', label:'1A', n:252 }
+];
+
+/* Parametri mappa di rotazione (settimane) */
+const RRG = { fast:10, slow:30, mom:4, sigmaWeeks:52 };
+
+const QUADS = {
+  lead: { label:'Leader',            color:'#00DFA0', desc:'Forti e in accelerazione: i capitali ci sono già.' },
+  weak: { label:'In indebolimento',  color:'#FFB820', desc:'Ancora forti ma perdono slancio: prese di profitto.' },
+  lag:  { label:'Ritardatari',       color:'#FF3F5A', desc:'Deboli e in peggioramento: i capitali escono.' },
+  imp:  { label:'In miglioramento',  color:'#38A0FF', desc:'Ancora deboli ma accelerano: i capitali arrivano.' }
+};
+
+/* CORS proxy, in ordine di preferenza. Testati dal browser su questo endpoint:
+     - r.jina.ai      OK, ~0.7s, nessun troncamento su 3 anni di dati, regge la concorrenza
+     - allorigins     funziona a intermittenza (spesso timeout / 522)
+     - codetabs       funziona a intermittenza
+     - corsfix        CORS ok ma spesso non raggiunge Yahoo
+     - corsproxy.io   NON piu' utilizzabile: richiede una API key
+     - cors.lol / whateverorigin / thingproxy: nessun header CORS, inutilizzabili
+   Il primo che risponde viene "promosso" e usato per le richieste successive. */
+const PROXIES = [
+  { n:'jina',       f: u => 'https://r.jina.ai/' + u },
+  { n:'allorigins', f: u => 'https://api.allorigins.win/get?url=' + encodeURIComponent(u) },
+  { n:'ao-raw',     f: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
+  { n:'codetabs',   f: u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u) },
+  { n:'corsfix',    f: u => 'https://proxy.corsfix.com/?' + u }
+];
+
+const YHOSTS = ['query1.finance.yahoo.com','query2.finance.yahoo.com'];
+const CDN_LIB = [
+  'https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js',
+  'https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js',
+  'https://fastly.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js'
+];
+
+const CACHE_TTL   = 15 * 60 * 1000;   // 15 minuti
+const CACHE_PFX   = 'rotiq:v1:';      // dati storici (soggetti a TTL e purge)
+const SET_PFX     = 'rotiq:set:';     // preferenze: mai ripulite
+const POOL        = 3;                // richieste in parallelo
+const MIN_GAP     = 420;              // ms minimi tra due richieste: i proxy gratuiti limitano il rate
+const REQ_TIMEOUT = 11000;
+
+const C = { bull:'#00DFA0', bear:'#FF3F5A', mut:'#4E6070', bd:'#1C2A3C', txt:'#C4D4E8', s1:'#0C1018', blue:'#38A0FF', warn:'#FFB820' };
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STATO
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const ROWS = [];   // voci visibili
+UNIVERSE.forEach(cat => cat.items.forEach(it => ROWS.push({
+  ...it, cat:cat.id, catLabel:cat.short, err:null, view:null, entry:null, core:null, name:it.n, ccy:''
+})));
+const BENCH_ROWS = EXTRA.map(it => ({ ...it, cat:'bench', catLabel:'Benchmark', err:null, view:null, entry:null, core:null, name:it.n, ccy:'' }));
+const ALL_ROWS = ROWS.concat(BENCH_ROWS);
+const BY_T = Object.fromEntries(ALL_ROWS.map(r => [r.t, r]));
+
+function pref(k, d){ try { const v = localStorage.getItem(SET_PFX + k); return v == null ? d : v; } catch(_) { return d; } }
+function setPref(k, v){ try { localStorage.setItem(SET_PFX + k, v); } catch(_) {} }
+
+const state = {
+  period : pref('period', '6M'),
+  from   : null, to: null,
+  tr     : pref('tr', '1') !== '0',
+  rel    : pref('rel', '1') !== '0',
+  tab    : pref('tab', 'rrg'),
+  scope  : pref('scope', 'sectors'),
+  tail   : +pref('tail', '6') || 6,
+  sort   : { key:'period', dir:-1 },
+  hl     : null,            // ticker evidenziato (mappa / confronto)
+  pin    : null,            // evidenziazione fissata con un clic
+  loading: false,
+  libOk  : false
+};
+if (!SCOPES.some(s => s.id === state.scope)) state.scope = 'sectors';
+if (!['rrg','heat','cmp','cards'].includes(state.tab)) state.tab = 'rrg';
+
+const $  = id => document.getElementById(id);
+const mem = new Map();      // ticker|intervallo -> {ts, bars, name, ccy, off}
+const A = { rrg:{}, heat:{}, gauges:[] };   // analisi derivate, ricalcolate a ogni aggiornamento
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILITY
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const DAY = 86400;
+const nowSec = () => Math.floor(Date.now()/1000);
+const clamp  = (v,a,b) => Math.max(a, Math.min(b, v));
+
+function fmtNum(v, d=2){
+  if (v == null || !isFinite(v)) return '—';
+  return v.toLocaleString('it-IT', { minimumFractionDigits:d, maximumFractionDigits:d });
+}
+function fmtPerf(v){
+  if (v == null || !isFinite(v)) return '—';
+  return (v >= 0 ? '+' : '') + fmtNum(v, 2) + '%';
+}
+function perfCls(v){
+  if (v == null || !isFinite(v)) return 'flat';
+  return v > 0.0001 ? 'pos' : (v < -0.0001 ? 'neg' : 'flat');
+}
+function fmtVol(v){
+  if (!v) return '—';
+  if (v >= 1e9) return fmtNum(v/1e9,1)+'B';
+  if (v >= 1e6) return fmtNum(v/1e6,1)+'M';
+  if (v >= 1e3) return fmtNum(v/1e3,0)+'K';
+  return String(Math.round(v));
+}
+/* epoch -> giorno locale di borsa (numero intero) e stringa YYYY-MM-DD */
+const localDay = (t, off) => Math.floor((t + (off||0)) / DAY);
+function dayStr(d){
+  const dt = new Date(d * DAY * 1000);
+  const p = n => String(n).padStart(2,'0');
+  return dt.getUTCFullYear() + '-' + p(dt.getUTCMonth()+1) + '-' + p(dt.getUTCDate());
+}
+function isoToSec(s){
+  const [y,m,d] = s.split('-').map(Number);
+  return Date.UTC(y, m-1, d) / 1000;
+}
+function todayIso(){ return dayStr(Math.floor(nowSec()/DAY)); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINESTRA TEMPORALE + GRANULARITA'
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function resolveWindow(){
+  const t1 = nowSec() + DAY;
+  if (state.period === 'CUSTOM' && state.from && state.to){
+    const a = isoToSec(state.from), b = isoToSec(state.to) + DAY;
+    const span = (b - a) / DAY;
+    const gran = span <= 220 ? 'd' : (span <= 1900 ? 'w' : 'm');
+    return { from:a, to:b, gran, span, label:state.from + ' → ' + state.to, custom:true };
+  }
+  const p = PERIODS.find(x => x.id === state.period) || PERIODS[2];
+  if (p.max) return { from:0, to:t1, gran:'m', span:1e6, label:'tutta la storia disponibile' };
+  let from;
+  if (p.ytd){
+    from = Date.UTC(new Date().getUTCFullYear(), 0, 1) / 1000;
+  } else {
+    from = t1 - p.days * DAY;
+  }
+  const span = (t1 - from) / DAY;
+  return { from, to:t1, gran:p.gran, span, label:dayStr(localDay(from,0)) + ' → oggi' };
+}
+
+/* Intervallo da chiedere a Yahoo: si scarica al massimo dettaglio utile e si
+   aggrega lato client, così una sola richiesta serve più periodi. */
+function baseInterval(w){
+  if (w.gran === 'm') return '1mo';
+  if (w.gran === 'w') return w.span <= 800 ? '1d' : '1wk';
+  return '1d';
+}
+/* Quanto indietro conviene scaricare (e tenere in cache) per quell'intervallo */
+const STD_BACK = { '1d': 800 * DAY, '1wk': 4200 * DAY, '1mo': null };
+const BUFFER   = { '1d': 30 * DAY,   '1wk': 200 * DAY,   '1mo': 400 * DAY };
+
+const GRAN_LABEL = { d:'giornaliere', w:'settimanali', m:'mensili' };
+
+/* Una finestra che finisce nel passato (range personalizzato su anni vecchi) avrebbe
+   bisogno di scaricare tutto fino a oggi per stare nella cache "rotolante": meglio
+   darle una cache dedicata e mirata, così il payload resta piccolo. */
+const isPast = w => !!w.custom && w.to < nowSec() - 90 * DAY;
+function dataKey(w, iv){
+  return isPast(w) ? iv + '@' + dayStr(localDay(w.from,0)) + '_' + dayStr(localDay(w.to,0)) : iv;
+}
+/* La cache copre la finestra richiesta? */
+function covers(e, w, iv){
+  return !!e && e.bars.length && e.bars[0].t <= w.from + BUFFER[iv] &&
+         (isPast(w) ? e.bars[e.bars.length-1].t >= w.to - BUFFER[iv] : true);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CACHE (memoria + localStorage con TTL)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function ckey(t, iv){ return CACHE_PFX + t + ':' + iv; }
+
+function cacheGet(t, iv){
+  const k = t + '|' + iv;
+  if (mem.has(k)) return mem.get(k);
+  try {
+    const raw = localStorage.getItem(ckey(t, iv));
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    if (!o || !Array.isArray(o.b)) return null;
+    const e = { ts:o.ts, name:o.n, ccy:o.c, off:o.o||0,
+                bars:o.b.map(r => ({ t:r[0], o:r[1], h:r[2], l:r[3], c:r[4], v:r[5]||0, a:r[6] })) };
+    mem.set(k, e);
+    return e;
+  } catch(_) { return null; }
+}
+function cacheSet(t, iv, e){
+  mem.set(t + '|' + iv, e);
+  const payload = JSON.stringify({
+    ts:e.ts, n:e.name, c:e.ccy, o:e.off,
+    b:e.bars.map(b => [b.t, b.o, b.h, b.l, b.c, b.v, b.a])
+  });
+  try {
+    localStorage.setItem(ckey(t, iv), payload);
+  } catch(_) {
+    // quota esaurita: si liberano le voci scadute e si riprova una volta sola,
+    // in ogni caso i dati restano disponibili in memoria per questa sessione
+    try { purgeCache(true); localStorage.setItem(ckey(t, iv), payload); } catch(_) {}
+  }
+}
+function cacheFresh(e){ return e && (Date.now() - e.ts) < CACHE_TTL; }
+
+function purgeCache(aggressive){
+  try {
+    const maxAge = aggressive ? CACHE_TTL : CACHE_TTL * 8;
+    const kill = [];
+    for (let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if (!k || k.indexOf(CACHE_PFX) !== 0) continue;
+      try {
+        const o = JSON.parse(localStorage.getItem(k));
+        if (!o || Date.now() - o.ts > maxAge) kill.push(k);
+      } catch(_) { kill.push(k); }
+    }
+    kill.forEach(k => localStorage.removeItem(k));
+  } catch(_) {}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FETCH — proxy multipli, host multipli, due giri con backoff
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+let proxyCursor = 0;
+
+function withTimeout(ms){
+  if (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) return AbortSignal.timeout(ms);
+  const c = new AbortController(); setTimeout(() => c.abort(), ms); return c.signal;
+}
+
+/* Estrae il JSON di Yahoo da qualunque forma restituita dai proxy:
+   JSON diretto, wrapper {contents:"..."} (allorigins), oppure JSON
+   annegato in un preambolo testuale (r.jina.ai). */
+function extractChart(text){
+  if (!text) return null;
+  try {
+    const j = JSON.parse(text);
+    if (j && j.chart) return j;
+    if (j && typeof j.contents === 'string'){
+      const k = JSON.parse(j.contents);
+      if (k && k.chart) return k;
+    }
+  } catch(_) {}
+  let i = text.indexOf('{"chart"');
+  if (i < 0) i = text.indexOf('{');
+  if (i < 0) return null;
+  for (const slice of [text.slice(i), text.slice(i, text.lastIndexOf('}') + 1)]){
+    try { const j = JSON.parse(slice); if (j && j.chart) return j; } catch(_) {}
+  }
+  return null;
+}
+
+const proxyFails = PROXIES.map(() => 0);
+const DEAD_AFTER = 2;        // proxy irraggiungibile 2 volte di fila: messo da parte
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* Distanzia nel tempo le partenze di tutte le richieste: i proxy gratuiti
+   rispondono 429 se li si inonda (r.jina.ai sta intorno alle 20 req/min). */
+let gateAt = 0;
+async function gate(){
+  const now = Date.now();
+  const wait = Math.max(0, gateAt - now);
+  gateAt = Math.max(now, gateAt) + MIN_GAP;
+  if (wait) await sleep(wait);
+}
+
+/* Strategia per errore:
+   - 429/503 (proxy vivo ma limitato): pausa globale per tutte le richieste e nuovo tentativo
+     sullo stesso proxy, che di solito si libera in pochi secondi;
+   - rete/timeout (proxy giu'): inutile provare l'altro host Yahoo, si passa al proxy successivo;
+   - HTTP diverso o risposta illeggibile: si prova l'altro host Yahoo. */
+async function fetchChart(ticker, qs){
+  const targets = YHOSTS.map(h => 'https://' + h + '/v8/finance/chart/' +
+    encodeURIComponent(ticker) + '?' + qs + '&includeAdjustedClose=true');
+  let lastErr = null;
+  const alive = proxyFails.filter(f => f < DEAD_AFTER).length;
+
+  for (let pi = 0; pi < PROXIES.length; pi++){
+    const idx = (proxyCursor + pi) % PROXIES.length;
+    if (alive > 0 && proxyFails[idx] >= DEAD_AFTER) continue;   // circuit breaker
+    let down = false, throttled = false;
+
+    hosts:
+    for (const target of targets){
+      for (let att = 0; att < 5; att++){
+        await gate();
+        let res;
+        try {
+          res = await fetch(PROXIES[idx].f(target), { signal:withTimeout(REQ_TIMEOUT), cache:'no-store' });
+        } catch(e){ lastErr = e; down = true; break hosts; }
+        if (res.status === 429 || res.status === 503){
+          lastErr = new Error('proxy a rate limit (' + res.status + ')');
+          if (att < 4){
+            const pause = 2000 * (att + 1);
+            gateAt = Math.max(gateAt, Date.now() + pause);          // rallenta tutti, non solo questa richiesta
+            await sleep(pause);
+            continue;
+          }
+          throttled = true; break hosts;
+        }
+        try {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const j = extractChart(await res.text());
+          if (!j) throw new Error('risposta non interpretabile');
+          proxyFails[idx] = 0;
+          proxyCursor = idx;                                        // proxy sano: promosso
+          return j;
+        } catch(e){ lastErr = e; break; }                           // prova l'altro host
+      }
+    }
+    if (down) proxyFails[idx]++;
+    else if (!throttled) proxyFails[idx] = 0;                       // ha risposto: e' vivo
+  }
+  throw lastErr || new Error('nessun proxy raggiungibile');
+}
+
+function parseChart(j, ticker){
+  const err = j.chart && j.chart.error;
+  if (err) throw new Error(err.description || err.code || 'errore Yahoo');
+  const r = j.chart && j.chart.result && j.chart.result[0];
+  if (!r || !r.timestamp || !r.timestamp.length) throw new Error('nessuna serie storica');
+  const q  = (r.indicators.quote && r.indicators.quote[0]) || {};
+  const ac = (r.indicators.adjclose && r.indicators.adjclose[0] && r.indicators.adjclose[0].adjclose) || null;
+  const m  = r.meta || {};
+  const bars = [];
+  for (let i = 0; i < r.timestamp.length; i++){
+    const o = q.open && q.open[i], h = q.high && q.high[i],
+          l = q.low && q.low[i],   c = q.close && q.close[i];
+    if (c == null || !isFinite(c) || c <= 0) continue;             // barre bucate: scartate
+    const oo = (o == null || !isFinite(o)) ? c : o;
+    bars.push({
+      t: r.timestamp[i],
+      o: oo,
+      h: (h == null || !isFinite(h)) ? Math.max(oo, c) : h,
+      l: (l == null || !isFinite(l)) ? Math.min(oo, c) : l,
+      c: c,
+      v: (q.volume && q.volume[i]) || 0,
+      a: (ac && ac[i] != null && isFinite(ac[i])) ? ac[i] : c
+    });
+  }
+  if (bars.length < 2) throw new Error('dati insufficienti');
+  bars.sort((x, y) => x.t - y.t);
+  return {
+    ts: Date.now(), bars,
+    name: m.longName || m.shortName || ticker,
+    ccy: m.currency || '',
+    off: m.gmtoffset || 0
+  };
+}
+
+/* Garantisce che in cache ci siano barre a `iv` che coprano `fromSec` */
+async function ensure(ticker, w, force){
+  const iv  = baseInterval(w);
+  const key = dataKey(w, iv);
+  const hit = cacheGet(ticker, key);
+  if (!force && cacheFresh(hit) && covers(hit, w, iv)) return hit;
+
+  let qs;
+  if (iv === '1mo'){
+    qs = 'interval=1mo&range=max';
+  } else if (isPast(w)){
+    qs = 'interval=' + iv + '&period1=' + Math.max(0, Math.floor(w.from - BUFFER[iv])) +
+         '&period2=' + Math.floor(w.to + BUFFER[iv]);
+  } else {
+    const p1 = Math.max(0, Math.floor(Math.min(w.from - BUFFER[iv], nowSec() - STD_BACK[iv])));
+    qs = 'interval=' + iv + '&period1=' + p1 + '&period2=' + (nowSec() + DAY);
+  }
+  try {
+    const e = parseChart(await fetchChart(ticker, qs), ticker);
+    cacheSet(ticker, key, e);
+    return e;
+  } catch(err){
+    if (hit && hit.bars.length) return hit;    // meglio dati un po' vecchi che niente
+    throw err;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SLICE + AGGREGAZIONE + PERFORMANCE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function buildView(entry, w){
+  const bars = entry.bars, off = entry.off;
+  let i0 = bars.findIndex(b => b.t >= w.from);
+  if (i0 === -1) return null;
+  const win = [];
+  for (let i = i0; i < bars.length && bars[i].t < w.to; i++) win.push(bars[i]);
+  if (!win.length) return null;
+  const prev = i0 > 0 ? bars[i0 - 1] : null;
+  // una candela sola e' sufficiente: nei primi giorni di gennaio lo YTD ne ha una
+  const cand = aggregate(win, w.gran, off);
+  if (!cand.length) return null;
+
+  const lastBar = win[win.length - 1];
+  const basePx  = prev ? prev.c : win[0].o;
+  const baseTr  = prev ? prev.a : win[0].a;
+  const perfPx  = (lastBar.c / basePx - 1) * 100;
+  const perfTr  = (lastBar.a / baseTr - 1) * 100;
+
+  let hi = -Infinity, lo = Infinity, vs = 0;
+  for (const b of win){ if (b.h > hi) hi = b.h; if (b.l < lo) lo = b.l; vs += b.v; }
+
+  return {
+    cand, win, perfPx, perfTr,
+    last: lastBar.c, lastTs: lastBar.t,
+    firstTs: win[0].t, hi, lo,
+    avgVol: vs / win.length,
+    baselineFrom: prev ? 'chiusura precedente' : 'apertura del periodo',
+    baseDate: dayStr(localDay(prev ? prev.t : win[0].t, off)),
+    bars: cand.length
+  };
+}
+
+function aggregate(win, gran, off){
+  if (gran === 'd') return win.map(b => ({
+    time: dayStr(localDay(b.t, off)), open:b.o, high:b.h, low:b.l, close:b.c, volume:b.v
+  }));
+  const bucket = b => {
+    const d = localDay(b.t, off);
+    if (gran === 'w') return Math.floor((d + 3) / 7);            // settimane lun-dom
+    const dt = new Date(d * DAY * 1000);
+    return dt.getUTCFullYear() * 12 + dt.getUTCMonth();
+  };
+  const out = [];
+  let cur = null, key = null;
+  for (const b of win){
+    const k = bucket(b);
+    if (k !== key){
+      if (cur) out.push(cur);
+      key = k;
+      cur = { time: dayStr(localDay(b.t, off)), open:b.o, high:b.h, low:b.l, close:b.c, volume:b.v };
+    } else {
+      if (b.h > cur.high) cur.high = b.h;
+      if (b.l < cur.low)  cur.low  = b.l;
+      cur.close = b.c;
+      cur.volume += b.v;
+    }
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+
+const perfOf = r => (!r.view ? null : (state.tr ? r.view.perfTr : r.view.perfPx));
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIBRERIA GRAFICI (lightweight-charts, con fallback su più CDN)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function loadScript(src){
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = () => res(); s.onerror = () => rej(new Error(src));
+    document.head.appendChild(s);
+  });
+}
+async function loadLib(){
+  for (const u of CDN_LIB){
+    try { await loadScript(u); if (window.LightweightCharts) { state.libOk = true; return true; } }
+    catch(_) {}
+  }
+  return false;
+}
+
+/* lightweight-charts 4.x e 5.x hanno API diverse per creare le serie: si adattano entrambe */
+function addCandles(chart, opts){
+  if (typeof chart.addCandlestickSeries === 'function') return chart.addCandlestickSeries(opts);
+  return chart.addSeries(window.LightweightCharts.CandlestickSeries, opts);
+}
+function addHist(chart, opts){
+  if (typeof chart.addHistogramSeries === 'function') return chart.addHistogramSeries(opts);
+  return chart.addSeries(window.LightweightCharts.HistogramSeries, opts);
+}
+
+const CANDLE_STYLE = {
+  upColor:C.bull, downColor:C.bear, borderUpColor:C.bull, borderDownColor:C.bear,
+  wickUpColor:C.bull, wickDownColor:C.bear, borderVisible:true
+};
+
+function mkChart(el, mini){
+  const LC = window.LightweightCharts;
+  const chart = LC.createChart(el, {
+    autoSize: true,
+    width: el.clientWidth || 240, height: el.clientHeight || 88,
+    layout:{ background:{ type:'solid', color:'transparent' }, textColor:C.mut,
+             fontFamily:"'DM Mono',monospace", fontSize:10, attributionLogo:false },
+    grid:{ vertLines:{ visible:!mini, color:'rgba(28,42,60,.5)' },
+           horzLines:{ visible:!mini, color:'rgba(28,42,60,.5)' } },
+    rightPriceScale:{ visible:!mini, borderColor:C.bd, scaleMargins:{ top:.08, bottom:mini ? .04 : .24 } },
+    leftPriceScale:{ visible:false },
+    timeScale:{ visible:!mini, borderColor:C.bd, rightOffset:mini ? 0 : 3,
+                fixLeftEdge:true, fixRightEdge:true, lockVisibleTimeRangeOnResize:true },
+    crosshair:{ mode:mini ? 2 : 0,
+                vertLine:{ color:'rgba(56,160,255,.5)', width:1, style:2, labelBackgroundColor:'#18222E' },
+                horzLine:{ color:'rgba(56,160,255,.5)', width:1, style:2, labelBackgroundColor:'#18222E' } },
+    handleScroll: !mini, handleScale: !mini,
+    localization:{ locale:'it-IT',
+      priceFormatter: p => p.toLocaleString('it-IT',{ minimumFractionDigits:2, maximumFractionDigits:2 }) }
+  });
+  const series = addCandles(chart, Object.assign({}, CANDLE_STYLE, mini
+    ? { priceLineVisible:false, lastValueVisible:false }   // sui mini grafici la linea del prezzo e' solo rumore
+    : { priceLineVisible:true,  lastValueVisible:true, priceLineStyle:2, priceLineWidth:1 }));
+  return { chart, series, el };
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANALISI — dove si muovono i capitali
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const px = b => state.tr ? b.a : b.c;
+const scopeObj = id => SCOPES.find(s => s.id === (id || state.scope)) || SCOPES[0];
+const membersOf = sc => ROWS.filter(r => sc.cats.includes(r.cat) && r.t !== sc.bench);
+/* ambito "naturale" di un ticker quando lo si apre fuori dal suo contesto */
+const scopeFor = r => state.scope === 'all' ? 'all' : (r.cat === 'sectors' ? 'sectors' : 'countries');
+
+function ema(a, n){
+  const k = 2 / (n + 1), o = new Array(a.length);
+  let e = a[0];
+  for (let i = 0; i < a.length; i++){ e = i ? a[i] * k + e * (1 - k) : a[0]; o[i] = e; }
+  return o;
+}
+function sd(a){
+  if (!a.length) return 0;
+  const m = a.reduce((s, v) => s + v, 0) / a.length;
+  return Math.sqrt(a.reduce((s, v) => s + (v - m) * (v - m), 0) / a.length);
+}
+function quantAbs(a, q){
+  const s = a.filter(v => v != null && isFinite(v)).map(Math.abs).sort((x, y) => x - y);
+  return s.length ? s[Math.min(s.length - 1, Math.floor(q * s.length))] : 0;
+}
+function quadOf(x, y){ return x >= 100 ? (y >= 100 ? 'lead' : 'weak') : (y >= 100 ? 'imp' : 'lag'); }
+
+/* chiusura settimanale (ultima seduta della settimana lun-dom) */
+function weeklyMap(e){
+  const m = new Map();
+  for (const b of e.bars) m.set(Math.floor((localDay(b.t, e.off) + 3) / 7), px(b));
+  return m;
+}
+/* prezzo all'ultima seduta <= giorno richiesto (ricerca binaria) */
+function pxAt(e, day){
+  const bs = e.bars;
+  let lo = 0, hi = bs.length - 1, ans = -1;
+  while (lo <= hi){
+    const mid = (lo + hi) >> 1;
+    if (localDay(bs[mid].t, e.off) <= day){ ans = mid; lo = mid + 1; } else hi = mid - 1;
+  }
+  return ans < 0 ? null : px(bs[ans]);
+}
+
+/* ── Mappa di rotazione (approssimazione RRG) ─────────────────────────────── */
+function computeRRG(sc){
+  const B = BY_T[sc.bench];
+  if (!B || !B.core) return { items:[], bench:sc.bench };
+  const wb = weeklyMap(B.core);
+  const raw = [];
+  for (const r of membersOf(sc)){
+    if (!r.core) continue;
+    const wp = weeklyMap(r.core);
+    const keys = [...wp.keys()].filter(k => wb.has(k)).sort((a, b) => a - b);
+    if (keys.length < RRG.slow + RRG.mom + 8) continue;
+    const rs = keys.map(k => wp.get(k) / wb.get(k));
+    const f = ema(rs, RRG.fast), s = ema(rs, RRG.slow);
+    const L = rs.map((_, i) => f[i] / s[i] - 1);
+    const Ls = ema(L, 2);
+    const M = L.map((_, i) => i >= RRG.mom ? Ls[i] - Ls[i - RRG.mom] : NaN);
+    const i0 = Math.max(RRG.slow, L.length - RRG.sigmaWeeks);
+    raw.push({ r, keys, L, M, sl:sd(L.slice(i0)), sm:sd(M.slice(i0).filter(isFinite)) });
+  }
+  if (!raw.length) return { items:[], bench:sc.bench };
+  /* Normalizzazione ibrida: media geometrica tra la volatilita' del singolo rapporto e
+     quella del gruppo. Solo-gruppo schiaccia al centro i ticker tranquilli (Taiwan e Corea
+     dominano la scala); solo-ticker fa sembrare drammatici movimenti minimi. */
+  const pl = [], pm = [];
+  raw.forEach(o => {
+    for (let i = Math.max(RRG.slow, o.L.length - RRG.sigmaWeeks); i < o.L.length; i++){
+      pl.push(o.L[i]); if (isFinite(o.M[i])) pm.push(o.M[i]);
+    }
+  });
+  const GL = sd(pl) || 1, GM = sd(pm) || 1;
+  const items = raw.map(o => {
+    const sL = Math.sqrt((o.sl || GL) * GL), sM = Math.sqrt((o.sm || GM) * GM);
+    const n = o.L.length, pts = [];
+    for (let i = Math.max(RRG.slow + RRG.mom, n - 21); i < n; i++){
+      pts.push({ x:100 + o.L[i] / sL, y:100 + o.M[i] / sM, k:o.keys[i] });
+    }
+    const h = pts[pts.length - 1], p = pts[Math.max(0, pts.length - 3)];
+    const dx = h.x - p.x, dy = h.y - p.y;
+    return { t:o.r.t, r:o.r, pts, x:h.x, y:h.y, q:quadOf(h.x, h.y), dx, dy,
+             ang: Math.atan2(dy, dx) * 180 / Math.PI, dist: Math.hypot(h.x - 100, h.y - 100) };
+  });
+  const lastK = Math.max(...items.map(i => i.pts[i.pts.length - 1].k));
+  return { items, bench:sc.bench, byT:Object.fromEntries(items.map(i => [i.t, i])),
+           week: dayStr(lastK * 7 - 3) };
+}
+function headingTxt(it){
+  if (!it) return '—';
+  if (Math.hypot(it.dx, it.dy) < 0.05) return '→ stabile';
+  if (it.dx >= 0 && it.dy >= 0) return '↗ si rafforza';
+  if (it.dx >= 0) return '↘ perde slancio';
+  if (it.dy < 0) return '↙ si indebolisce';
+  return '↖ in recupero';
+}
+
+/* ── Forza relativa multi-orizzonte ────────────────────────────────────── */
+function computeHeat(sc){
+  const B = BY_T[sc.bench];
+  const out = { bench:sc.bench, rows:[], byT:{}, benchRow:null };
+  if (!B || !B.core) return out;
+  const mk = (r, isBench) => {
+    const e = r.core; if (!e || !e.bars.length) return null;
+    const last = e.bars[e.bars.length - 1], lastDay = localDay(last.t, e.off);
+    const row = { t:r.t, r, abs:{}, rel:{} };
+    for (const h of HORIZONS){
+      const i0 = e.bars.length - 1 - h.n;
+      if (i0 < 0){ row.abs[h.id] = row.rel[h.id] = null; continue; }
+      const d0 = localDay(e.bars[i0].t, e.off);
+      const ra = px(last) / px(e.bars[i0]) - 1;
+      row.abs[h.id] = ra * 100;
+      if (isBench){ row.rel[h.id] = 0; continue; }
+      const b0 = pxAt(B.core, d0), b1 = pxAt(B.core, lastDay);
+      row.rel[h.id] = (b0 && b1) ? ((1 + ra) / (b1 / b0) - 1) * 100 : null;
+    }
+    // periodo selezionato: assoluto dalla view, relativo sulle date in comune col benchmark
+    row.abs.period = perfOf(r);
+    if (isBench) row.rel.period = 0;
+    else {
+      const line = r.view ? perfLine(r, sc.bench, resolveWindow(), true) : [];
+      row.rel.period = line.length ? line[line.length - 1].value : null;
+    }
+    for (const m of ['abs', 'rel']){
+      const a = row[m].h1m, b = row[m].h3m;
+      row[m].accel = (a != null && b != null) ? a - b / 3 : null;
+    }
+    return row;
+  };
+  out.benchRow = mk(B, true);
+  for (const r of membersOf(sc)){
+    const row = mk(r, false);
+    if (row){ out.rows.push(row); out.byT[r.t] = row; }
+  }
+  return out;
+}
+
+/* ── Serie di prezzo raggruppate secondo la granularita' del periodo ────── */
+function bucketKey(day, gran){
+  if (gran === 'd') return day;
+  if (gran === 'w') return Math.floor((day + 3) / 7);
+  const dt = new Date(day * DAY * 1000);
+  return dt.getUTCFullYear() * 12 + dt.getUTCMonth();
+}
+function periodSeries(r, w){
+  const e = r.entry; if (!e) return null;
+  const bs = e.bars, out = new Map();
+  let base = null, first = null;
+  for (let i = 0; i < bs.length; i++){
+    const b = bs[i];
+    if (b.t < w.from){ base = px(b); continue; }
+    if (b.t >= w.to) break;
+    const d = localDay(b.t, e.off), k = bucketKey(d, w.gran);
+    if (!out.has(k)) out.set(k, { time:dayStr(d), v:px(b) }); else out.get(k).v = px(b);
+    if (first == null) first = px(b);
+  }
+  if (!out.size) return null;
+  // hasPrev: esiste una seduta prima della finestra (l'ETF era gia' quotato)
+  return { map:out, base: base != null ? base : first, hasPrev: base != null };
+}
+
+/* Linea di performance cumulata (assoluta o relativa al benchmark), in % */
+function perfLine(r, benchT, w, relative){
+  const s = periodSeries(r, w); if (!s) return [];
+  if (!relative){
+    return [...s.map.entries()].sort((a, b) => a[0] - b[0])
+      .map(([, o]) => ({ time:o.time, value:(o.v / s.base - 1) * 100 }));
+  }
+  const bs = periodSeries(BY_T[benchT], w); if (!bs) return [];
+  const keys = [...s.map.keys()].filter(k => bs.map.has(k)).sort((a, b) => a - b);
+  if (!keys.length) return [];
+  /* Se ETF e benchmark erano entrambi quotati prima della finestra si usa la chiusura
+     precedente (stessa base della performance). Altrimenti (Max, o range che precede la
+     quotazione dell'ETF) si riparte dal primo punto in comune: confrontare XLC dal 2018
+     con SPY dal 1993 darebbe numeri privi di senso. */
+  const aligned = s.hasPrev && bs.hasPrev;
+  const b0 = aligned ? s.base : s.map.get(keys[0]).v, bb0 = aligned ? bs.base : bs.map.get(keys[0]).v;
+  return keys.map(k => ({ time:s.map.get(k).time, value:((s.map.get(k).v / b0) / (bs.map.get(k).v / bb0) - 1) * 100 }));
+}
+
+/* ── Indicatori dei flussi: paniere A contro paniere B ─────────────────── */
+function computeGauges(w){
+  return GAUGES.map(g => {
+    // i membri senza dati nel periodo (non ancora quotati) escono dal paniere invece di azzerarlo
+    const has = t => BY_T[t] && BY_T[t].entry && periodSeries(BY_T[t], w);
+    const sa = g.A().filter(has).map(t => BY_T[t]), sb = g.B().filter(has).map(t => BY_T[t]);
+    if (!sa.length || !sb.length) return { g, vals:[], last:null };
+    const all = sa.concat(sb);
+    const series = all.map(r => periodSeries(r, w));
+    let keys = [...series[0].map.keys()];
+    for (const s of series.slice(1)) keys = keys.filter(k => s.map.has(k));
+    keys.sort((a, b) => a - b);
+    if (keys.length < 2) return { g, vals:[], last:null };
+    // base: il primo punto comune (evita confronti tra date di quotazione diverse)
+    const k0 = keys[0], useBase = series.every(s => s.hasPrev);
+    const norm = (s, k) => s.map.get(k).v / (useBase ? s.base : s.map.get(k0).v);
+    const avg = (arr, k) => arr.reduce((acc, s) => acc + norm(s, k), 0) / arr.length;
+    const A1 = series.slice(0, sa.length), B1 = series.slice(sa.length);
+    const vals = keys.map(k => (avg(A1, k) / avg(B1, k) - 1) * 100);
+    return { g, vals, last:vals[vals.length - 1], from:series[0].map.get(k0).time };
+  });
+}
+
+function computeAnalytics(){
+  const w = resolveWindow();
+  SCOPES.forEach(sc => { A.rrg[sc.id] = computeRRG(sc); A.heat[sc.id] = computeHeat(sc); });
+  A.gauges = computeGauges(w);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RENDER — controlli
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const TABS = [
+  { id:'rrg',   label:'Rotazione' },
+  { id:'heat',  label:'Forza relativa' },
+  { id:'cmp',   label:'Confronto' },
+  { id:'cards', label:'Candele' }
+];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const relVal = (o, k) => o ? (state.rel ? o.rel[k] : o.abs[k]) : null;
+const arrowSvg = (ang, col) =>
+  '<svg class="arrow" viewBox="0 0 12 12" style="transform:rotate(' + (-ang).toFixed(0) + 'deg)">' +
+  '<path d="M1 6h8M6.5 3L9.5 6 6.5 9" stroke="' + col + '" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const qChip = q => q ? '<span class="qchip" style="background:' + QUADS[q].color + '1f;color:' + QUADS[q].color + '">' +
+  '<span class="qdot" style="background:' + QUADS[q].color + '"></span>' + QUADS[q].label + '</span>' : '<span class="flat">—</span>';
+
+/* I controlli si creano una volta sola e poi si aggiornano solo le classi: ricostruirli
+   a ogni aggiornamento (ogni ~0,5 s durante il caricamento) faceva perdere i clic. */
+function buildControls(){
+  const mk = (parent, cls, html, key, fn) => {
+    const b = document.createElement('button');
+    b.className = cls; b.innerHTML = html; b.dataset.key = key; b.onclick = fn;
+    parent.appendChild(b); return b;
+  };
+  PERIODS.forEach(p => mk($('periodChips'), 'chip', p.label, p.id, () => setPeriod(p.id)));
+  mk($('periodChips'), 'chip', 'range', 'CUSTOM', () => $('btnCustom').click());
+  TABS.forEach(t => mk($('tabs'), 'tab', t.label, t.id, () => setTab(t.id)));
+  SCOPES.forEach(sc => mk($('scopeSeg'), '', sc.label + ' <span style="opacity:.55">vs ' + sc.bench + '</span>', sc.id, () => setScope(sc.id)));
+}
+
+function renderControls(){
+  $('periodChips').querySelectorAll('button').forEach(b => {
+    b.classList.toggle('on', b.dataset.key === state.period);
+    if (b.dataset.key === 'CUSTOM') b.hidden = state.period !== 'CUSTOM';
+  });
+  $('tabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.key === state.tab));
+  $('scopeSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.key === state.scope));
+  document.querySelectorAll('#relSeg button').forEach(b => b.classList.toggle('on', (b.dataset.rel === '1') === state.rel));
+  $('btnTR').textContent = state.tr ? 'TR' : 'Prezzo';
+  $('btnTR').classList.toggle('on', state.tr);
+  document.querySelectorAll('main > section[data-view]').forEach(s => { s.hidden = s.dataset.view !== state.tab; });
+  $('tailTxt').textContent = state.tail; $('tailRange').value = state.tail;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RENDER — sintesi dei flussi
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function sparkPath(vals, W, H){
+  if (vals.length < 2) return '';
+  const step = Math.max(1, Math.floor(vals.length / 140));
+  const v = vals.filter((_, i) => i % step === 0 || i === vals.length - 1);
+  const mn = Math.min(0, ...v), mx = Math.max(0, ...v), rg = (mx - mn) || 1;
+  const X = i => (i * W / (v.length - 1)).toFixed(1), Y = y => (H - 2 - (y - mn) / rg * (H - 4)).toFixed(1);
+  const line = v.map((y, i) => (i ? 'L' : 'M') + X(i) + ' ' + Y(y)).join('');
+  return { line, area: line + 'L' + W + ' ' + Y(0) + 'L0 ' + Y(0) + 'Z', zero: Y(0) };
+}
+
+function renderFlow(){
+  const box = $('flow'); let html = '';
+  A.gauges.forEach(o => {
+    const v = o.last, cls = v == null ? 'flat' : (v > 0.5 ? 'pos' : (v < -0.5 ? 'neg' : 'flat'));
+    const verdict = v == null ? 'n/d' : (cls === 'pos' ? o.g.up : (cls === 'neg' ? o.g.down : 'neutro'));
+    const col = cls === 'pos' ? C.bull : (cls === 'neg' ? C.bear : C.mut);
+    const sp = sparkPath(o.vals, 200, 34);
+    html += '<div class="panel gauge"><div class="g-k">' + o.g.k + '</div>' +
+      '<div class="g-t">' + esc(o.g.a) + ' <span>vs</span> ' + esc(o.g.b) + '</div>' +
+      (sp ? '<svg class="g-spark" viewBox="0 0 200 34" preserveAspectRatio="none">' +
+        '<path d="' + sp.area + '" fill="' + col + '" opacity=".12"/>' +
+        '<line x1="0" x2="200" y1="' + sp.zero + '" y2="' + sp.zero + '" stroke="#263445" stroke-dasharray="2 3" vector-effect="non-scaling-stroke"/>' +
+        '<path d="' + sp.line + '" fill="none" stroke="' + col + '" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>'
+        : '<div class="g-spark"></div>') +
+      '<div class="g-row"><span class="g-v ' + cls + '">' + fmtPerf(v) + '</span>' +
+      '<span class="g-verdict ' + cls + '">' + verdict + '</span></div>' +
+      '<div class="g-foot">' + (o.from ? 'dal ' + o.from + ' · ' : '') + 'panieri equipesati</div></div>';
+  });
+
+  // In entrata / in uscita: livello del momentum + sua variazione nelle ultime 2 settimane,
+  // per gruppo col proprio benchmark (settori vs SPY, paesi vs ACWI)
+  const pool = [];
+  ['sectors', 'countries'].forEach(id => (A.rrg[id] && A.rrg[id].items || []).forEach(it =>
+    pool.push({ it, bench:A.rrg[id].bench, score:(it.y - 100) + 2 * it.dy })));
+  const byScore = pool.slice().sort((a, b) => b.score - a.score);
+  const inflow  = byScore.filter(o => o.score > 0 && o.it.dy > -0.05).slice(0, 4);
+  const outflow = byScore.slice().reverse().filter(o => o.score < 0 && o.it.dy < 0.05).slice(0, 4);
+  const mv = (list, col) => list.length ? list.map(o =>
+    '<button class="mv" data-open="' + o.it.t + '" title="' + esc(QUADS[o.it.q].label) + ' vs ' + o.bench + '">' +
+    '<span class="qdot" style="background:' + QUADS[o.it.q].color + '"></span>' +
+    '<span class="mv-t">' + o.it.t + '</span><span class="mv-n">' + esc(o.it.r.n) + '</span>' +
+    arrowSvg(o.it.ang, col) + '</button>').join('') : '<div class="sub">—</div>';
+  const wk = (A.rrg.sectors && A.rrg.sectors.week) || '';
+  html += '<div class="panel movers"><div class="g-k"><span>Flussi in corso</span><span>' + (wk ? 'sett. ' + wk : '') + '</span></div>' +
+    '<div class="mv-col"><div class="mv-h pos">▲ In entrata</div>' + mv(inflow, C.bull) + '</div>' +
+    '<div class="mv-col"><div class="mv-h neg">▼ In uscita</div>' + mv(outflow, C.bear) + '</div></div>';
+  box.innerHTML = html;
+  box.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openModal(b.dataset.open));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RENDER — mappa di rotazione (SVG)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function renderRRG(){
+  const sc = scopeObj(), R = A.rrg[sc.id], svg = $('rrgSvg');
+  $('rrgTitle').textContent = 'Mappa di rotazione · ' + sc.label + ' vs ' + sc.bench;
+  hideTip();
+  if (!R || !R.items.length){
+    svg.setAttribute('viewBox', '0 0 600 200'); svg.style.height = '200px';
+    svg.innerHTML = '<text x="300" y="100" text-anchor="middle" fill="#4E6070" font-size="11">' +
+      (state.loading ? 'caricamento dati settimanali…' : 'dati insufficienti') + '</text>';
+    $('quads').innerHTML = '';
+    return;
+  }
+  const W = Math.max(300, Math.round(svg.clientWidth || $('rrgBox').clientWidth - 12));
+  const H = Math.round(clamp(W * 0.74, 300, 560));
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.style.height = H + 'px';
+  const pad = { l:48, r:12, t:12, b:30 };
+  const tail = state.tail;
+  const vis = R.items.map(it => ({ it, pts:it.pts.slice(-(tail + 1)) }));
+  /* scala: tutte le posizioni attuali devono stare dentro; le scie solo fino al 90° percentile,
+     cosi' un'escursione estrema di un singolo ETF non schiaccia tutti gli altri al centro */
+  const hx = vis.map(v => Math.abs(v.it.x - 100)), hy = vis.map(v => Math.abs(v.it.y - 100));
+  const tx = [], ty = [];
+  vis.forEach(v => v.pts.forEach(p => { tx.push(p.x - 100); ty.push(p.y - 100); }));
+  let xr = Math.max(Math.max(...hx), quantAbs(tx, 0.9)), yr = Math.max(Math.max(...hy), quantAbs(ty, 0.9));
+  xr = Math.max(1.2, xr * 1.15); yr = Math.max(1.2, yr * 1.15);
+  const sx = x => pad.l + (x - (100 - xr)) / (2 * xr) * (W - pad.l - pad.r);
+  const sy = y => pad.t + ((100 + yr) - y) / (2 * yr) * (H - pad.t - pad.b);
+  const cx = sx(100), cy = sy(100), x0 = pad.l, x1 = W - pad.r, y0 = pad.t, y1 = H - pad.b;
+
+  let s = '<defs><clipPath id="rrgClip"><rect x="' + x0 + '" y="' + y0 + '" width="' + (x1 - x0) + '" height="' + (y1 - y0) + '"/></clipPath></defs>';
+  const rect = (x, y, w, h, q) => '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + QUADS[q].color + '" opacity=".055"/>';
+  s += rect(x0, y0, cx - x0, cy - y0, 'imp') + rect(cx, y0, x1 - cx, cy - y0, 'lead') +
+       rect(x0, cy, cx - x0, y1 - cy, 'lag') + rect(cx, cy, x1 - cx, y1 - cy, 'weak');
+  // griglia
+  const stepX = xr > 4 ? 2 : (xr > 2 ? 1 : 0.5), stepY = yr > 4 ? 2 : (yr > 2 ? 1 : 0.5);
+  for (let v = Math.ceil((100 - xr) / stepX) * stepX; v <= 100 + xr; v += stepX){
+    if (Math.abs(v - 100) < 1e-6) continue;
+    s += '<line x1="' + sx(v) + '" x2="' + sx(v) + '" y1="' + y0 + '" y2="' + y1 + '" stroke="#1C2A3C" stroke-dasharray="2 4"/>' +
+         '<text x="' + sx(v) + '" y="' + (y1 + 13) + '" text-anchor="middle" font-size="9" fill="#4E6070">' + (+v.toFixed(1)) + '</text>';
+  }
+  for (let v = Math.ceil((100 - yr) / stepY) * stepY; v <= 100 + yr; v += stepY){
+    if (Math.abs(v - 100) < 1e-6) continue;
+    s += '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + sy(v) + '" y2="' + sy(v) + '" stroke="#1C2A3C" stroke-dasharray="2 4"/>' +
+         '<text x="' + (x0 - 5) + '" y="' + (sy(v) + 3) + '" text-anchor="end" font-size="9" fill="#4E6070">' + (+v.toFixed(1)) + '</text>';
+  }
+  s += '<line x1="' + cx + '" x2="' + cx + '" y1="' + y0 + '" y2="' + y1 + '" stroke="#263445"/>' +
+       '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + cy + '" y2="' + cy + '" stroke="#263445"/>';
+  const ql = (x, y, anchor, q) => '<text x="' + x + '" y="' + y + '" text-anchor="' + anchor + '" font-size="9.5" letter-spacing="1.2" fill="' + QUADS[q].color + '" opacity=".75">' + QUADS[q].label.toUpperCase() + '</text>';
+  s += ql(x0 + 8, y0 + 16, 'start', 'imp') + ql(x1 - 8, y0 + 16, 'end', 'lead') +
+       ql(x0 + 8, y1 - 9, 'start', 'lag') + ql(x1 - 8, y1 - 9, 'end', 'weak');
+  s += '<text x="' + (x1 - 2) + '" y="' + (H - 3) + '" text-anchor="end" font-size="8.5" fill="#6E8196" letter-spacing=".8">FORZA RELATIVA →</text>' +
+       '<text transform="translate(11 ' + (y0 + 2) + ') rotate(-90)" text-anchor="end" font-size="8.5" fill="#6E8196" letter-spacing=".8">MOMENTUM →</text>';
+
+  // etichette senza sovrapposizioni (greedy)
+  const placed = vis.map(v => { const h = v.pts[v.pts.length - 1]; return { x:sx(h.x) - 6, y:sy(h.y) - 6, w:12, h:12 }; });
+  const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const labelPos = (hx, hy, text) => {
+    const w = text.length * 6.3 + 2, h = 12;
+    const cands = [[hx + 8, hy - 6], [hx - 8 - w, hy - 6], [hx - w / 2, hy - 19], [hx - w / 2, hy + 7],
+                   [hx + 8, hy - 17], [hx + 8, hy + 5], [hx - 8 - w, hy - 17], [hx - 8 - w, hy + 5]];
+    for (const [lx, ly] of cands){
+      const b = { x:lx, y:ly, w, h };
+      if (lx < x0 || lx + w > x1 || ly < y0 || ly + h > y1) continue;
+      if (!placed.some(p => hit(p, b))){ placed.push(b); return b; }
+    }
+    const b = { x:cands[0][0], y:cands[0][1], w, h }; placed.push(b); return b;
+  };
+
+  const order = vis.slice().sort((a, b) => (a.it.t === state.pin) - (b.it.t === state.pin) || a.it.dist - b.it.dist);
+  let g = '';
+  order.forEach(v => {
+    const it = v.it, col = QUADS[it.q].color, pts = v.pts.map(p => [sx(p.x), sy(p.y)]);
+    const head = pts[pts.length - 1];
+    let el = '<g class="it' + ((state.pin || state.hl) === it.t ? ' hl' : '') + '" data-t="' + it.t + '">';
+    if (pts.length > 1){
+      el += '<polyline points="' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') +
+            '" fill="none" stroke="' + col + '" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" opacity=".55"/>';
+      pts.slice(0, -1).forEach((p, i) => {
+        el += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="' + (1.4 + i / pts.length * 1.4).toFixed(1) +
+              '" fill="' + col + '" opacity="' + (0.25 + i / pts.length * 0.5).toFixed(2) + '"/>';
+      });
+    }
+    el += '<circle cx="' + head[0].toFixed(1) + '" cy="' + head[1].toFixed(1) + '" r="5.5" fill="' + col + '" stroke="#07090E" stroke-width="1.5"/>' +
+          '<circle cx="' + head[0].toFixed(1) + '" cy="' + head[1].toFixed(1) + '" r="14" fill="transparent"/>';
+    const lb = labelPos(head[0], head[1], it.t);
+    el += '<text x="' + (lb.x + 1).toFixed(1) + '" y="' + (lb.y + 9.5).toFixed(1) + '" font-size="10.5" font-weight="500" fill="#E6EEF7" ' +
+          'stroke="#07090E" stroke-width="3" paint-order="stroke">' + it.t + '</text></g>';
+    g += el;
+  });
+  svg.innerHTML = s + '<g clip-path="url(#rrgClip)">' + g + '</g>';
+  if (state.pin) state.hl = state.pin;
+  svg.classList.toggle('dim', !!(state.hl && R.byT[state.hl]));
+  svg.querySelectorAll('g.it').forEach(el => {
+    el.addEventListener('mouseenter', () => { if (!state.pin) setHL(el.dataset.t); });
+    el.addEventListener('mouseleave', () => { if (!state.pin) setHL(null); });
+    el.addEventListener('click', e => { e.stopPropagation(); pinItem(el.dataset.t); });
+  });
+  svg._geo = { sx, sy };
+
+  // pannello quadranti
+  const qOrder = ['imp', 'lead', 'lag', 'weak'];
+  $('quads').innerHTML = qOrder.map(q => {
+    const list = R.items.filter(i => i.q === q).sort((a, b) => b.dist - a.dist);
+    return '<div class="panel quad" style="--qc:' + QUADS[q].color + '"><div class="quad-h"><span>' + QUADS[q].label + '</span><span>' + list.length + '</span></div>' +
+      '<div class="quad-d">' + QUADS[q].desc + '</div>' +
+      (list.length ? list.map(i => '<button class="qi' + (state.hl === i.t ? ' hl' : '') + '" data-t="' + i.t + '" title="' + esc(headingTxt(i)) + '">' +
+        arrowSvg(i.ang, QUADS[q].color) + '<span class="qi-t">' + i.t + '</span><span class="qi-n">' + esc(i.r.n) + '</span></button>').join('')
+        : '<div class="sub">nessuno</div>') + '</div>';
+  }).join('');
+  $('quads').querySelectorAll('.qi').forEach(b => {
+    b.onmouseenter = () => { if (!state.pin) setHL(b.dataset.t); };
+    b.onmouseleave = () => { if (!state.pin) setHL(null); };
+    b.onclick = () => pinItem(b.dataset.t);
+  });
+  if (state.pin && R.byT[state.pin]) showTip(state.pin);
+}
+
+function setHL(t){
+  if (state.hl === t) return;
+  state.hl = t;
+  const svg = $('rrgSvg'), R = A.rrg[state.scope];
+  svg.classList.toggle('dim', !!(t && R && R.byT && R.byT[t]));
+  // niente riordino del DOM sull'elemento sotto il mouse: faceva scattare in loop
+  // mouseenter/mouseleave e l'evidenziazione restava bloccata
+  svg.querySelectorAll('g.it').forEach(g => g.classList.toggle('hl', g.dataset.t === t));
+  document.querySelectorAll('#quads .qi').forEach(b => b.classList.toggle('hl', b.dataset.t === t));
+  if (state.tab === 'cmp') styleCmp();
+}
+function pinItem(t){
+  if (state.pin === t){ state.pin = null; setHL(null); hideTip(); return; }
+  state.pin = t; state.hl = null; renderRRG();
+}
+function hideTip(){ $('tip').hidden = true; }
+function showTip(t){
+  const R = A.rrg[state.scope], it = R && R.byT && R.byT[t], svg = $('rrgSvg');
+  if (!it || !svg._geo) return hideTip();
+  const H = A.heat[state.scope].byT[t];
+  const tip = $('tip');
+  tip.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">' +
+    '<span class="tip-t">' + t + '</span>' + qChip(it.q) + '</div>' +
+    '<div class="sub" style="margin:2px 0 6px">' + esc(it.r.n) + ' · vs ' + R.bench + '</div>' +
+    'Forza relativa <b>' + fmtNum(it.x, 2) + '</b> · Momentum <b>' + fmtNum(it.y, 2) + '</b><br>' +
+    'Direzione: <b>' + headingTxt(it) + '</b><br>' +
+    (H ? 'vs ' + R.bench + ': 1M <b class="' + perfCls(H.rel.h1m) + '">' + fmtPerf(H.rel.h1m) + '</b> · 3M <b class="' + perfCls(H.rel.h3m) + '">' + fmtPerf(H.rel.h3m) + '</b>' : '') +
+    '<button class="btn" id="tipOpen">Apri grafico</button>';
+  tip.hidden = false;
+  const box = $('rrgBox').getBoundingClientRect(), sr = svg.getBoundingClientRect();
+  const hx = svg._geo.sx(it.x) + (sr.left - box.left), hy = svg._geo.sy(it.y) + (sr.top - box.top);
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  let left = hx + 14, top = hy - th / 2;
+  if (left + tw > box.width - 6) left = hx - tw - 14;
+  left = clamp(left, 6, box.width - tw - 6); top = clamp(top, 6, box.height - th - 6);
+  tip.style.left = left + 'px'; tip.style.top = top + 'px';
+  $('tipOpen').onclick = () => openModal(t);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RENDER — tabella di forza relativa
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function renderHeat(){
+  const sc = scopeObj(), Hs = A.heat[sc.id], R = A.rrg[sc.id] || {};
+  const perLabel = state.period === 'CUSTOM' ? 'Range' : (PERIODS.find(p => p.id === state.period) || {}).label;
+  $('heatSub').textContent = (state.rel ? 'rendimento in eccesso vs ' + sc.bench : 'rendimento assoluto') +
+    ' · ' + (state.tr ? 'total return' : 'solo prezzo');
+  const cols = HORIZONS.map(h => ({ k:h.id, label:h.label }))
+    .concat([{ k:'period', label:'Periodo ' + perLabel, sep:true }, { k:'accel', label:'Accel.' }]);
+  if (!Hs || !Hs.rows.length){ $('heat').innerHTML = '<tr><td class="empty">' + (state.loading ? 'caricamento…' : 'nessun dato') + '</td></tr>'; return; }
+
+  const val = (row, k) => relVal(row, k);
+  const scale = {};
+  cols.forEach(c => { scale[c.k] = Math.max(c.k === 'h1w' ? 0.6 : 1, quantAbs(Hs.rows.map(r => val(r, c.k)), 0.85)); });
+  const qScore = t => { const it = R.byT && R.byT[t]; return it ? (it.x - 100) + (it.y - 100) : -1e9; };
+  const { key, dir } = state.sort;
+  const rows = Hs.rows.slice().sort((a, b) => {
+    if (key === 't') return dir * a.t.localeCompare(b.t);
+    const va = key === 'q' ? qScore(a.t) : val(a, key), vb = key === 'q' ? qScore(b.t) : val(b, key);
+    if (va == null && vb == null) return 0; if (va == null) return 1; if (vb == null) return -1;
+    return dir * (va - vb);
+  });
+  const cell = (v, k, extra) => {
+    if (v == null) return '<td class="flat' + (extra || '') + '">—</td>';
+    const a = Math.min(1, Math.abs(v) / scale[k]) * 0.5;
+    const bg = v >= 0 ? 'rgba(0,223,160,' + a.toFixed(3) + ')' : 'rgba(255,63,90,' + a.toFixed(3) + ')';
+    return '<td class="c' + (extra || '') + '" style="background:' + bg + '">' + (v >= 0 ? '+' : '') + fmtNum(v, 1) + '%</td>';
+  };
+  const th = (k, label, cls) => '<th class="' + (cls || '') + (key === k ? ' on' + (dir > 0 ? ' asc' : '') : '') + '" data-k="' + k + '">' + label + '</th>';
+  let h = '<thead><tr>' + th('t', 'Ticker', 'l stick') + '<th class="l">Nome</th>' +
+    cols.map(c => th(c.k, c.label, c.sep ? 'sep' : '')).join('') + th('q', 'Rotazione', 'l sep') + '</tr></thead><tbody>';
+  const B = Hs.benchRow;
+  if (B){
+    h += '<tr class="bench"><td class="t l stick">' + B.t + '</td><td class="nm l">benchmark' + (state.rel ? ' · rend. assoluto' : '') + '</td>' +
+      cols.map(c => '<td class="' + (c.sep ? 'sep' : '') + '">' + (B.abs[c.k] == null ? '—' : (B.abs[c.k] >= 0 ? '+' : '') + fmtNum(B.abs[c.k], 1) + '%') + '</td>').join('') +
+      '<td class="l sep">—</td></tr>';
+  }
+  rows.forEach((row, i) => {
+    const it = R.byT && R.byT[row.t];
+    const acc = val(row, 'accel');
+    h += '<tr class="row" data-t="' + row.t + '"><td class="t l stick"><span class="flat" style="font-size:9px;margin-right:5px">' + (i + 1) + '</span>' + row.t + '</td>' +
+      '<td class="nm l">' + esc(row.r.n) + (sc.id !== 'sectors' && row.r.cat !== 'sectors' ? '<span class="catchip cat-' + row.r.cat + '">' + (row.r.cat === 'developed' ? 'DM' : 'EM') + '</span>' : '') + '</td>' +
+      cols.map(c => c.k === 'accel'
+        ? (acc == null ? '<td class="flat">—</td>' : '<td class="acc ' + perfCls(acc) + '">' + (acc >= 0 ? '▲ +' : '▼ ') + fmtNum(acc, 1) + '</td>')
+        : cell(val(row, c.k), c.k, c.sep ? ' sep' : '')).join('') +
+      '<td class="l sep">' + (it ? qChip(it.q) + ' ' + arrowSvg(it.ang, QUADS[it.q].color) : '<span class="flat">—</span>') + '</td></tr>';
+  });
+  $('heat').innerHTML = h + '</tbody>';
+  $('heat').querySelectorAll('th[data-k]').forEach(t => t.onclick = () => {
+    const k = t.dataset.k;
+    state.sort = { key:k, dir: state.sort.key === k ? -state.sort.dir : (k === 't' ? 1 : -1) };
+    renderHeat();
+  });
+  $('heat').querySelectorAll('tr.row').forEach(tr => tr.onclick = () => openModal(tr.dataset.t));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RENDER — confronto (linee di performance)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+let cmp = null;   // { chart, lines: Map(t -> {series, data, color}) }
+const TOP_COL = ['#00DFA0', '#4FE8B8', '#9BF2D6'], BOT_COL = ['#FF3F5A', '#FF7385', '#FFA9B5'];
+
+function addLine(chart, opts){
+  if (typeof chart.addLineSeries === 'function') return chart.addLineSeries(opts);
+  return chart.addSeries(window.LightweightCharts.LineSeries, opts);
+}
+
+function renderCmp(){
+  const sc = scopeObj(), w = resolveWindow();
+  $('cmpSub').textContent = (state.rel ? 'vs ' + sc.bench + ' (0% = benchmark)' : 'rendimento assoluto') + ' · ' + w.label;
+  if (!state.libOk){
+    $('cmpChart').innerHTML = '<div class="empty">' + (state.libTried ? 'libreria grafici non disponibile' : 'caricamento grafici…') + '</div>';
+    return;
+  }
+  if (!cmp){
+    const el = $('cmpChart');
+    el.innerHTML = '';
+    const chart = window.LightweightCharts.createChart(el, {
+      autoSize:true, width:el.clientWidth || 600, height:el.clientHeight || 400,
+      layout:{ background:{ type:'solid', color:'transparent' }, textColor:C.mut, fontFamily:"'DM Mono',monospace", fontSize:10, attributionLogo:false },
+      grid:{ vertLines:{ color:'rgba(28,42,60,.45)' }, horzLines:{ color:'rgba(28,42,60,.45)' } },
+      rightPriceScale:{ borderColor:C.bd }, timeScale:{ borderColor:C.bd, fixLeftEdge:true, fixRightEdge:true },
+      crosshair:{ mode:0, vertLine:{ color:'rgba(56,160,255,.45)', style:2, labelBackgroundColor:'#18222E' },
+                  horzLine:{ color:'rgba(56,160,255,.45)', style:2, labelBackgroundColor:'#18222E' } },
+      localization:{ locale:'it-IT', priceFormatter: p => (p >= 0 ? '+' : '') + p.toFixed(1) + '%' }
+    });
+    cmp = { chart, lines:new Map() };
+    chart.subscribeCrosshairMove(par => updateCmpLegend(par && par.time ? par : null));
+  }
+  cmp.lines.forEach(l => { try { cmp.chart.removeSeries(l.series); } catch(_){} });
+  cmp.lines.clear();
+
+  const mem_ = membersOf(sc).filter(r => r.view);
+  const data = mem_.map(r => ({ r, pts:perfLine(r, sc.bench, w, state.rel) })).filter(o => o.pts.length);
+  data.sort((a, b) => b.pts[b.pts.length - 1].value - a.pts[a.pts.length - 1].value);
+  const n = data.length;
+  data.forEach((o, i) => {
+    const color = i < 3 ? TOP_COL[i] : (i >= n - 3 ? BOT_COL[n - 1 - i] : '#6E8196');
+    const series = addLine(cmp.chart, { color, lineWidth:2, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
+    series.setData(o.pts);
+    cmp.lines.set(o.r.t, { series, pts:o.pts, color, r:o.r, rank:i });
+  });
+  // benchmark: linea tratteggiata (0 in modalità relativa)
+  const Babs = perfLine(BY_T[sc.bench], sc.bench, w, false);
+  const Bp = state.rel ? Babs.map(p => ({ time:p.time, value:0 })) : Babs;
+  const bSeries = addLine(cmp.chart, { color:'#C4D4E8', lineWidth:1, lineStyle:2, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
+  bSeries.setData(Bp);
+  cmp.lines.set('__bench', { series:bSeries, pts:Bp, color:'#C4D4E8', bench:true, r:BY_T[sc.bench] });
+  cmp.chart.timeScale().fitContent();
+  styleCmp();
+  updateCmpLegend(null);
+}
+
+function styleCmp(){
+  if (!cmp) return;
+  const hl = state.hl && cmp.lines.has(state.hl) ? state.hl : null;
+  cmp.lines.forEach((l, t) => {
+    if (l.bench) return;
+    const dim = hl && t !== hl;
+    const mid = !l.color.startsWith('#6E') ? false : true;
+    l.series.applyOptions({
+      color: dim ? 'rgba(110,129,150,.18)' : (t === hl && mid ? '#38A0FF' : (mid && !hl ? 'rgba(110,129,150,.55)' : l.color)),
+      lineWidth: t === hl ? 3 : (mid ? 1 : 2),
+      crosshairMarkerVisible: t === hl
+    });
+  });
+  document.querySelectorAll('#cmpLeg .lg').forEach(b => b.classList.toggle('pin', b.dataset.t === hl));
+}
+
+function updateCmpLegend(par){
+  if (!cmp) return;
+  const rows = [...cmp.lines.entries()].map(([t, l]) => {
+    let v;
+    if (par){ const d = par.seriesData.get(l.series); v = d ? d.value : null; }
+    else v = l.pts.length ? l.pts[l.pts.length - 1].value : null;
+    return { t, l, v };
+  }).sort((a, b) => (b.v == null ? -1e9 : b.v) - (a.v == null ? -1e9 : a.v));
+  $('cmpDate').textContent = par ? 'al ' + par.time : 'ultimo dato';
+  $('cmpLeg').innerHTML = rows.map(o => {
+    const r = o.l.r, isB = !!o.l.bench;
+    const sw = o.l.color.startsWith('#6E') ? '#6E8196' : o.l.color;
+    return '<button class="lg' + (isB ? ' bench' : '') + (state.hl === o.t ? ' pin' : '') + '" data-t="' + o.t + '">' +
+      '<span class="lg-sw" style="background:' + sw + (isB ? ';opacity:.6' : '') + '"></span>' +
+      '<span class="lg-t">' + (isB ? r.t : o.t) + '</span><span class="lg-n">' + esc(isB ? 'benchmark' : r.n) + '</span>' +
+      '<span class="lg-v ' + (isB ? '' : perfCls(o.v)) + '">' + fmtPerf(o.v) + '</span></button>';
+  }).join('');
+  $('cmpLeg').querySelectorAll('.lg:not(.bench)').forEach(b => {
+    b.onmouseenter = () => { if (!state.pin){ state.hl = b.dataset.t; styleCmp(); } };
+    b.onmouseleave = () => { if (!state.pin){ state.hl = null; styleCmp(); } };
+    b.onclick = () => { state.pin = state.pin === b.dataset.t ? null : b.dataset.t; state.hl = state.pin; styleCmp(); };
+    b.ondblclick = () => openModal(b.dataset.t);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RENDER — candele
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const cardCharts = new Map();
+
+function buildCards(){
+  const root = $('cardsRoot'); root.innerHTML = '';
+  UNIVERSE.forEach(cat => {
+    const wrap = document.createElement('div');
+    wrap.dataset.cat = cat.id;
+    wrap.innerHTML = '<div class="grid-title">' + cat.label + '</div><div class="grid" id="grid-' + cat.id + '"></div>';
+    root.appendChild(wrap);
+    const g = wrap.querySelector('.grid');
+    cat.items.forEach(it => {
+      const r = BY_T[it.t], c = document.createElement('button');
+      c.className = 'card'; c.dataset.t = it.t;
+      c.innerHTML = '<div class="c-top"><div style="min-width:0"><div class="c-t">' + it.t + '</div><div class="c-n">' + esc(it.n) + '</div></div>' +
+        '<div data-q></div></div><div class="c-chart"><div class="ph">caricamento…</div></div>' +
+        '<div class="c-bot"><div><div class="c-perf flat" data-perf>—</div><div class="c-rel flat" data-rel></div></div><div class="c-px" data-px></div></div>';
+      c.onclick = () => openModal(it.t);
+      r.el = c; g.appendChild(c);
+    });
+  });
+}
+
+function renderCards(){
+  const sc = scopeObj(), Hs = A.heat[sc.id], R = A.rrg[sc.id] || {};
+  document.querySelectorAll('#cardsRoot > div').forEach(d => { d.hidden = !sc.cats.includes(d.dataset.cat); });
+  UNIVERSE.forEach(cat => {
+    const g = $('grid-' + cat.id); if (!g || !sc.cats.includes(cat.id)) return;
+    const key = r => { const h = Hs && Hs.byT[r.t]; const v = h ? relVal(h, 'period') : perfOf(r); return v == null ? -1e9 : v; };
+    cat.items.map(i => BY_T[i.t]).sort((a, b) => key(b) - key(a)).forEach(r => {
+      const el = r.el; g.appendChild(el);
+      const ch = el.querySelector('.c-chart'), h = Hs && Hs.byT[r.t], it = R.byT && R.byT[r.t];
+      el.style.setProperty('--qc', it ? QUADS[it.q].color : 'transparent');
+      el.querySelector('[data-q]').innerHTML = it ? '<span class="qdot" title="' + QUADS[it.q].label + '" style="background:' + QUADS[it.q].color + ';display:inline-block"></span>' : '';
+      if (r.view){
+        el.classList.remove('dead');
+        const p = perfOf(r), pe = el.querySelector('[data-perf]');
+        pe.textContent = fmtPerf(p); pe.className = 'c-perf ' + perfCls(p);
+        const rv = h ? h.rel.period : null, re = el.querySelector('[data-rel]');
+        re.textContent = r.t === sc.bench ? 'benchmark' : 'vs ' + sc.bench + ' ' + fmtPerf(rv);
+        re.className = 'c-rel ' + (r.t === sc.bench ? 'flat' : perfCls(rv));
+        el.querySelector('[data-px]').innerHTML = fmtNum(r.view.last) + (r.ccy ? ' ' + r.ccy : '') + '<br><span style="opacity:.7">' + dayStr(localDay(r.view.lastTs, 0)) + '</span>';
+        const ph = ch.querySelector('.ph'); if (ph) ph.remove();
+        const inst = cardCharts.get(r.t);
+        if (inst){ inst.series.setData(r.view.cand); try { inst.chart.timeScale().fitContent(); } catch(_){} }
+        else io.observe(ch);
+      } else {
+        el.classList.add('dead');
+        const inst = cardCharts.get(r.t);
+        if (inst){ try { inst.chart.remove(); } catch(_){} cardCharts.delete(r.t); }
+        ch.innerHTML = '<div class="ph">' + (r.err ? 'dato non disponibile' : (state.loading ? 'caricamento…' : 'nessun dato')) + '</div>';
+      }
+    });
+  });
+}
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if (!en.isIntersecting) return;
+    const ch = en.target, t = ch.closest('.card') && ch.closest('.card').dataset.t, r = t && BY_T[t];
+    io.unobserve(ch);
+    if (!r || !r.view || !state.libOk || cardCharts.has(t)) return;
+    const ph = ch.querySelector('.ph'); if (ph) ph.remove();
+    try {
+      const inst = mkChart(ch, true);
+      inst.series.setData(r.view.cand); inst.chart.timeScale().fitContent();
+      cardCharts.set(t, inst);
+    } catch(e){ ch.innerHTML = '<div class="ph">grafico non disponibile</div>'; }
+  });
+}, { rootMargin:'200px 0px' });
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAINT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+let paintT = 0;
+function paintSoon(){ if (!paintT) paintT = setTimeout(() => { paintT = 0; paint(); }, 900); }
+
+function paint(){
+  if (paintT){ clearTimeout(paintT); paintT = 0; }
+  computeAnalytics();
+  const w = resolveWindow();
+  $('rangeTxt').innerHTML = '<b>' + GRAN_LABEL[w.gran] + '</b> · ' + w.label;
+  renderControls();
+  renderFlow();
+  if (state.tab === 'rrg')   renderRRG();
+  if (state.tab === 'heat')  renderHeat();
+  if (state.tab === 'cmp')   renderCmp();
+  if (state.tab === 'cards') renderCards();
+
+  const warn = $('warn');
+  if (state.period === 'MAX' && state.tab !== 'rrg'){
+    const starts = ROWS.filter(r => r.view).map(r => r.view.cand[0].time).sort();
+    const show = starts.length && starts[0].slice(0, 4) !== starts[starts.length - 1].slice(0, 4);
+    warn.classList.toggle('show', !!show);
+    if (show) $('warnTxt').innerHTML = 'Su <b>Max</b> ogni ETF parte dalla propria data di quotazione (dal ' + starts[0] + ' al ' + starts[starts.length - 1] +
+      '): i confronti coprono periodi di lunghezza diversa. Per leggere la rotazione usa un periodo fisso.';
+  } else warn.classList.remove('show');
+
+  const fails = ALL_ROWS.filter(r => r.err && r.err !== NO_DATA).length;
+  $('banner').classList.toggle('show', fails > 0 && !state.loading);
+  if (fails) $('bannerTxt').textContent = fails + (fails === 1 ? ' ticker non scaricato' : ' ticker non scaricati') +
+    ' — i proxy CORS gratuiti limitano le richieste per indirizzo IP. Aspetta un minuto e premi riprova.';
+  if (mCur && $('modal').classList.contains('show') && !state.loading) fillModal(mCur);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODALE A SCHERMO INTERO
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+let mCur = null, mChart = null, mSeries = null, mVol = null, mRs = null, mRsLine = null;
+
+function openModal(t){
+  if (!BY_T[t]) return;
+  mCur = t; hideTip();
+  $('modal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  fillModal(t);
+}
+function closeModal(){
+  $('modal').classList.remove('show');
+  document.body.style.overflow = '';
+  mCur = null;
+}
+function modalOrder(){
+  const r0 = BY_T[mCur], sid = scopeFor(r0), Hs = A.heat[sid];
+  const list = membersOf(scopeObj(sid));
+  const k = r => { const h = Hs && Hs.byT[r.t]; const v = h ? relVal(h, 'period') : null; return v == null ? -1e9 : v; };
+  return list.sort((a, b) => k(b) - k(a));
+}
+function stepModal(d){
+  const list = modalOrder(), i = list.findIndex(r => r.t === mCur);
+  if (i === -1) return;
+  openModal(list[(i + d + list.length) % list.length].t);
+}
+
+function fillModal(t){
+  const r = BY_T[t], v = r.view, w = resolveWindow();
+  const sid = scopeFor(r), sc = scopeObj(sid), bench = r.t === sc.bench ? (sid === 'sectors' ? 'ACWI' : sc.bench) : sc.bench;
+  const H = A.heat[sid] && A.heat[sid].byT[t], it = A.rrg[sid] && A.rrg[sid].byT && A.rrg[sid].byT[t];
+  const p = perfOf(r), rv = H ? H.rel.period : null;
+  $('mT').textContent = r.t;
+  $('mN').textContent = r.n + (r.name && r.name !== r.n ? '  ·  ' + r.name : '');
+  $('mPerf').innerHTML = '<span class="' + perfCls(p) + '">' + fmtPerf(p) + '</span>' +
+    (H ? '<small class="' + perfCls(rv) + '">vs ' + bench + ' ' + fmtPerf(rv) + '</small>' : '');
+  const order = modalOrder(), pos = order.findIndex(x => x.t === t);
+  $('mRank').textContent = pos >= 0 ? 'posizione ' + (pos + 1) + ' su ' + order.length + ' vs ' + bench + ' nel periodo' : '';
+  $('mRsLbl').textContent = 'Forza relativa vs ' + bench + ' (0% = benchmark)';
+
+  const host = $('mChart'), rsHost = $('mRs');
+  if (state.libOk){
+    if (!mChart){
+      const inst = mkChart(host, false);
+      mChart = inst.chart; mSeries = inst.series;
+      mVol = addHist(mChart, { priceFormat:{ type:'volume' }, priceScaleId:'', color:'rgba(56,160,255,.28)', priceLineVisible:false, lastValueVisible:false });
+      mVol.priceScale().applyOptions({ scaleMargins:{ top:.82, bottom:0 } });
+      mChart.subscribeCrosshairMove(par => {
+        const leg = $('mLegend'), d = par && par.time && par.seriesData ? par.seriesData.get(mSeries) : null;
+        if (!d){ leg.innerHTML = ''; return; }
+        const ch = (d.close / d.open - 1) * 100;
+        leg.innerHTML = '<b>' + par.time + '</b>  A ' + fmtNum(d.open) + '  M ' + fmtNum(d.high) + '  m ' + fmtNum(d.low) +
+          '  C <b>' + fmtNum(d.close) + '</b> <span class="' + perfCls(ch) + '">' + fmtPerf(ch) + '</span>';
+      });
+      mRs = window.LightweightCharts.createChart(rsHost, {
+        autoSize:true, width:rsHost.clientWidth || 600, height:150,
+        layout:{ background:{ type:'solid', color:'transparent' }, textColor:C.mut, fontFamily:"'DM Mono',monospace", fontSize:10, attributionLogo:false },
+        grid:{ vertLines:{ visible:false }, horzLines:{ color:'rgba(28,42,60,.45)' } },
+        rightPriceScale:{ borderColor:C.bd, scaleMargins:{ top:.22, bottom:.08 } },
+        timeScale:{ borderColor:C.bd, fixLeftEdge:true, fixRightEdge:true },
+        crosshair:{ mode:0, vertLine:{ color:'rgba(56,160,255,.45)', style:2, labelBackgroundColor:'#18222E' }, horzLine:{ visible:false } },
+        localization:{ locale:'it-IT', priceFormatter: x => (x >= 0 ? '+' : '') + x.toFixed(1) + '%' }
+      });
+      mRsLine = addLine(mRs, { color:C.blue, lineWidth:2, priceLineVisible:false, lastValueVisible:true });
+      mRsLine.createPriceLine({ price:0, color:'#4E6070', lineWidth:1, lineStyle:2, axisLabelVisible:false });
+    }
+    mSeries.setData(v ? v.cand : []);
+    mVol.setData(v ? v.cand.map(c => ({ time:c.time, value:c.volume, color:c.close >= c.open ? 'rgba(0,223,160,.26)' : 'rgba(255,63,90,.26)' })) : []);
+    mChart.timeScale().fitContent();
+    const rsPts = v ? perfLine(r, bench, w, true) : [];
+    const lastRs = rsPts.length ? rsPts[rsPts.length - 1].value : 0;
+    mRsLine.applyOptions({ color: lastRs >= 0 ? C.bull : C.bear });
+    mRsLine.setData(rsPts);
+    mRs.timeScale().fitContent();
+  }
+  $('mLegend').innerHTML = v ? '' : '<b>' + (r.err ? 'dato non disponibile: ' + esc(r.err) : 'nessuna candela nel periodo') + '</b>';
+
+  if (!v){ $('mStats').innerHTML = ''; $('mNote').textContent = ''; return; }
+  const dd = (v.last / v.hi - 1) * 100, acc = H ? H.rel.accel : null;
+  const stats = [
+    ['Ultimo', fmtNum(v.last) + (r.ccy ? ' ' + r.ccy : '')],
+    ['Perf. periodo', fmtPerf(p), perfCls(p)],
+    ['vs ' + bench, fmtPerf(rv), perfCls(rv)],
+    ['Rotazione', it ? '<span style="color:' + QUADS[it.q].color + '">' + QUADS[it.q].label + '</span>' : '—'],
+    ['Direzione', it ? headingTxt(it) : '—'],
+    ['Accel. vs ' + bench, acc == null ? '—' : (acc >= 0 ? '▲ +' : '▼ ') + fmtNum(acc, 1) + ' pt', perfCls(acc)],
+    ['Dal massimo', fmtPerf(dd), perfCls(dd)],
+    ['Min / Max', fmtNum(v.lo) + ' / ' + fmtNum(v.hi)],
+    ['Volume medio', fmtVol(v.avgVol)],
+    ['Candele', v.bars + ' ' + GRAN_LABEL[w.gran]]
+  ];
+  $('mStats').innerHTML = stats.map(s => '<div class="st"><div class="st-k">' + s[0] + '</div><div class="st-v ' + (s[2] || '') + '">' + s[1] + '</div></div>').join('');
+  $('mNote').innerHTML = 'Base di calcolo: ' + v.baselineFrom + ' del <b>' + v.baseDate + '</b> · ultima candela <b>' +
+    dayStr(localDay(v.lastTs, 0)) + '</b> · <b>' + (state.tr ? 'total return' : 'solo prezzo') + '</b>. ' +
+    'Rotazione e direzione sono settimanali (sett. del ' + ((A.rrg[sid] && A.rrg[sid].week) || '—') + ').';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARICAMENTO
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Dataset "base": ~2 anni di sedute giornaliere. Serve alla mappa di rotazione e
+   alla tabella multi-orizzonte, e copre da solo i periodi da 1M a 2A. */
+const CORE_DAYS = 760;
+function coreWindow(){ const t1 = nowSec() + DAY; return { from:t1 - CORE_DAYS * DAY, to:t1, gran:'w', span:CORE_DAYS }; }
+
+function setDot(cls, txt){ $('dot').className = 'dot ' + cls; $('syncTxt').textContent = txt; }
+function setProg(done, tot){
+  const p = $('prog');
+  p.classList.toggle('done', done >= tot);
+  p.firstElementChild.style.width = (tot ? done / tot * 100 : 0) + '%';
+}
+async function pool(items, n, fn){
+  let i = 0;
+  await Promise.all(Array.from({ length:Math.min(n, items.length) }, async () => {
+    while (i < items.length){ const k = i++; await fn(items[k]); }
+  }));
+}
+
+async function loadRow(r, w, force){
+  r.core = await ensure(r.t, coreWindow(), force);
+  const iv = baseInterval(w);
+  try {
+    r.entry = (dataKey(w, iv) === '1d' && covers(r.core, w, '1d')) ? r.core : await ensure(r.t, w, force);
+  } catch(err){
+    // Yahoo risponde "Data doesn't exist" per finestre precedenti alla quotazione dell'ETF:
+    // non e' un download fallito e riprovare non servirebbe
+    if (/doesn.t exist|no data found/i.test((err && err.message) || '')){
+      r.entry = null; r.view = null; r.err = NO_DATA; return;
+    }
+    throw err;
+  }
+  r.name = r.entry.name; r.ccy = r.entry.ccy;
+  r.view = buildView(r.entry, w);
+  r.err = r.view ? null : NO_DATA;
+}
+
+/* Token di generazione: se il periodo cambia durante un caricamento, il run vecchio
+   abbandona i propri risultati invece di scrivere dati riferiti a un'altra finestra. */
+let loadToken = 0;
+const NO_DATA = 'nessun dato nel periodo';
+const isFailed = r => !r.core || (!!r.err && r.err !== NO_DATA);
+const loadOrder = () => [BY_T.SPY, BY_T.ACWI].concat(ALL_ROWS.filter(r => r.t !== 'SPY' && r.t !== 'ACWI'));
+
+async function loadAll(force){
+  const my = ++loadToken;
+  state.loading = true;
+  const w = resolveWindow(), list = loadOrder(), tot = list.length;
+  let done = 0;
+  setDot('load', 'caricamento 0/' + tot); setProg(0, tot);
+  $('btnReload').classList.add('spin');
+  await pool(list, POOL, async r => {
+    if (my !== loadToken) return;
+    try { await loadRow(r, w, force); if (my !== loadToken) return; }
+    catch(err){ if (my !== loadToken) return; r.err = (err && err.message) || 'errore'; r.view = null; }
+    done++;
+    setDot('load', 'caricamento ' + done + '/' + tot); setProg(done, tot);
+    paintSoon();
+  });
+  if (my !== loadToken) return;
+  state.loading = false;
+  $('btnReload').classList.remove('spin');
+  const failed = ALL_ROWS.filter(isFailed).length;
+  setDot(failed ? 'err' : 'ok', failed ? (tot - failed) + '/' + tot + ' caricati' : 'aggiornato');
+  paint();
+}
+
+/* Ricalcolo senza rete quando la cache copre già la nuova finestra */
+async function reflow(){
+  const w = resolveWindow(), iv = baseInterval(w);
+  let missing = false;
+  ALL_ROWS.forEach(r => {
+    const e = cacheGet(r.t, dataKey(w, iv));
+    if (r.core && cacheFresh(r.core) && cacheFresh(e) && covers(e, w, iv)){
+      r.entry = e; r.view = buildView(e, w); r.err = r.view ? null : 'nessun dato nel periodo';
+    } else { r.view = null; r.err = null; missing = true; }
+  });
+  paint();
+  if (missing) await loadAll(false); else setDot('ok', 'aggiornato');
+}
+
+async function retryFailed(){
+  const bad = ALL_ROWS.filter(isFailed);
+  if (!bad.length || state.loading) return;
+  const my = ++loadToken, w = resolveWindow();
+  state.loading = true; $('btnReload').classList.add('spin');
+  let done = 0; setDot('load', 'riprovo ' + bad.length); setProg(0, bad.length);
+  await pool(bad, 2, async r => {
+    if (my !== loadToken) return;
+    try { await loadRow(r, w, true); } catch(err){ if (my === loadToken){ r.err = (err && err.message) || 'errore'; } }
+    setProg(++done, bad.length); paintSoon();
+  });
+  if (my !== loadToken) return;
+  state.loading = false; $('btnReload').classList.remove('spin');
+  const failed = ALL_ROWS.filter(isFailed).length;
+  setDot(failed ? 'err' : 'ok', failed ? (ALL_ROWS.length - failed) + '/' + ALL_ROWS.length + ' caricati' : 'aggiornato');
+  paint();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INTERAZIONE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function setPeriod(id){
+  state.period = id; state.from = state.to = null;
+  setPref('period', id);
+  $('customBox').classList.remove('show');
+  reflow();
+}
+function setTab(id){
+  state.tab = id; setPref('tab', id);
+  state.pin = null; state.hl = null;
+  paint();
+  if (id === 'cards') requestAnimationFrame(() => cardCharts.forEach(o => { try { o.chart.timeScale().fitContent(); } catch(_){} }));
+}
+function setScope(id){
+  state.scope = id; setPref('scope', id);
+  state.pin = null; state.hl = null;
+  paint();
+}
+function applyCustom(){
+  const a = $('dFrom').value, b = $('dTo').value;
+  if (!a || !b){ alert('Inserisci entrambe le date.'); return; }
+  if (isoToSec(a) >= isoToSec(b)){ alert('La data iniziale deve precedere quella finale.'); return; }
+  state.period = 'CUSTOM'; state.from = a; state.to = b;
+  reflow();
+}
+
+$('btnReload').onclick = () => loadAll(true);
+$('btnRetryFailed').onclick = retryFailed;
+$('btnCustom').onclick = () => {
+  const box = $('customBox'); box.classList.toggle('show');
+  if (box.classList.contains('show') && !$('dTo').value){
+    $('dTo').value = todayIso(); $('dFrom').value = dayStr(Math.floor(nowSec() / DAY) - 365);
+  }
+};
+$('btnApply').onclick = applyCustom;
+$('btnClear').onclick = () => { $('customBox').classList.remove('show'); if (state.period === 'CUSTOM') setPeriod('6M'); };
+$('btnTR').onclick = () => { state.tr = !state.tr; setPref('tr', state.tr ? '1' : '0'); paint(); };
+document.querySelectorAll('#relSeg button').forEach(b => b.onclick = () => {
+  state.rel = b.dataset.rel === '1'; setPref('rel', state.rel ? '1' : '0'); paint();
+});
+$('tailRange').oninput = e => { state.tail = +e.target.value; setPref('tail', state.tail); $('tailTxt').textContent = state.tail; renderRRG(); };
+$('rrgBox').addEventListener('click', e => { if (!e.target.closest('#tip') && !e.target.closest('.rrg-ctl') && state.pin){ state.pin = null; setHL(null); hideTip(); } });
+$('mClose').onclick = closeModal;
+$('mPrev').onclick = () => stepModal(-1);
+$('mNext').onclick = () => stepModal(1);
+document.addEventListener('keydown', e => {
+  if (!$('modal').classList.contains('show')) return;
+  if (e.key === 'Escape') closeModal();
+  else if (e.key === 'ArrowLeft') stepModal(-1);
+  else if (e.key === 'ArrowRight') stepModal(1);
+});
+let rzT = 0;
+new ResizeObserver(() => { clearTimeout(rzT); rzT = setTimeout(() => { if (state.tab === 'rrg') renderRRG(); }, 150); }).observe($('rrgBox'));
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AVVIO
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+(async function init(){
+  purgeCache();
+  $('dTo').max = todayIso(); $('dFrom').max = todayIso();
+  buildControls();
+  buildCards();
+  paint();
+  setDot('load', 'grafici…');
+  const ok = await loadLib();
+  state.libTried = true;
+  if (!ok){
+    setDot('err', 'libreria grafici non caricata');
+    $('banner').classList.add('show');
+    $('bannerTxt').textContent = 'Libreria grafici non raggiungibile: mappa di rotazione, tabella e sintesi funzionano, candele e confronto no.';
+  }
+  await loadAll(false);
+})();
+</script>
+</body>
+</html>
