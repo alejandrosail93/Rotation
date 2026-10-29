@@ -271,6 +271,9 @@ table.heat{border-collapse:collapse;width:100%;min-width:720px;font-variant-nume
     </div>
     <div class="hdr-r">
       <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">avvio…</span></div>
+      <button class="icon-btn" id="btnExport" title="Scarica tutti i dati in JSON" aria-label="Scarica i dati in JSON">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7.5 11.5L12 16l4.5-4.5"/><path d="M4 20h16"/></svg>
+      </button>
       <button class="icon-btn" id="btnReload" title="Ricarica dati (ignora cache)" aria-label="Ricarica dati">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
       </button>
@@ -892,6 +895,7 @@ function buildView(entry, w){
     avgVol: vs / win.length,
     baselineFrom: prev ? 'chiusura precedente' : 'apertura del periodo',
     baseDate: dayStr(localDay(prev ? prev.t : win[0].t, off)),
+    basePx, baseTr,
     bars: cand.length
   };
 }
@@ -1955,6 +1959,137 @@ function applyCustom(){
   reflow();
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   ESPORTAZIONE JSON
+   Un unico file con: impostazioni correnti, indicatori, analisi per ogni
+   ambito (rotazione + forza relativa) e le serie giornaliere grezze, cosi'
+   da poter ricalcolare qualunque periodo anche offline.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const rd = (v, n) => (v == null || !isFinite(v)) ? null : +v.toFixed(n == null ? 4 : n);
+
+function buildExport(){
+  const w = resolveWindow();
+  const out = {
+    tool: 'RotationIQ',
+    versioneFormato: 1,
+    generatoIl: new Date().toISOString(),
+    impostazioni: {
+      periodo: state.period === 'CUSTOM' ? 'personalizzato' : state.period,
+      finestraDa: dayStr(localDay(w.from, 0)),
+      finestraA: dayStr(localDay(Math.min(w.to, nowSec()), 0)),
+      finestraInizioEsatto: new Date(w.from * 1000).toISOString(),
+      granularitaCandele: GRAN_LABEL[w.gran],
+      totalReturn: state.tr,
+      baseRendimenti: state.tr ? 'chiusura rettificata (dividendi e split)' : 'chiusura semplice (solo prezzo)',
+      confrontoMostrato: state.rel ? 'vs benchmark' : 'assoluto'
+    },
+    fonte: { provider:'Yahoo Finance', endpoint:'v8/finance/chart' },
+    benchmark: Object.fromEntries(SCOPES.map(sc => [sc.id, sc.bench])),
+    indicatori: (A.gauges || []).map(o => ({
+      indicatore: o.g.k,
+      paniereA: o.g.a,
+      paniereB: o.g.b,
+      valorePct: rd(o.last, 2),
+      dal: o.from || null,
+      seSale: o.g.up,
+      seScende: o.g.down
+    })),
+    ambiti: {},
+    serieGiornaliere: { colonne:['data','apertura','massimo','minimo','chiusura','volume','chiusuraRettificata'], dati:{} },
+    tickerMancanti: ALL_ROWS.filter(r => !r.core).map(r => r.t),
+    note: []
+  };
+
+  SCOPES.forEach(sc => {
+    const R = A.rrg[sc.id] || {}, H = A.heat[sc.id] || {}, byT = R.byT || {};
+    out.ambiti[sc.id] = {
+      etichetta: sc.label,
+      benchmark: sc.bench,
+      settimanaRotazione: R.week || null,
+      voci: (H.rows || []).map(row => {
+        const it = byT[row.t], r = row.r, oriz = {};
+        HORIZONS.forEach(h => { oriz[h.label] = { assoluto:rd(row.abs[h.id], 2), relativo:rd(row.rel[h.id], 2) }; });
+        return {
+          ticker: row.t,
+          nome: r.n,
+          categoria: r.catLabel,
+          periodoAssolutoPct: rd(row.abs.period, 2),
+          periodoRelativoPct: rd(row.rel.period, 2),
+          orizzonti: oriz,
+          accelerazioneAssolutaPct: rd(row.abs.accel, 2),
+          accelerazioneRelativaPct: rd(row.rel.accel, 2),
+          rotazione: it ? {
+            quadrante: QUADS[it.q].label,
+            forzaRelativa: rd(it.x, 2),
+            momentum: rd(it.y, 2),
+            spostamentoSettimanaleX: rd(it.dx, 3),
+            spostamentoSettimanaleY: rd(it.dy, 3),
+            distanzaDalCentro: rd(it.dist, 3)
+          } : null,
+          ultimoPrezzo: r.view ? rd(r.view.last, 4) : null,
+          ultimaData: r.view ? dayStr(localDay(r.view.lastTs, 0)) : null,
+          /* Base esplicita: la finestra parte da un istante, non da mezzanotte, quindi
+             la sola data di inizio non basta a ricostruire il denominatore. */
+          baseData: r.view ? r.view.baseDate : null,
+          basePrezzo: r.view ? rd(state.tr ? r.view.baseTr : r.view.basePx, 4) : null,
+          baseRiferimento: r.view ? r.view.baselineFrom : null,
+          valuta: r.ccy || null
+        };
+      })
+    };
+  });
+
+  ALL_ROWS.forEach(r => {
+    if (!r.core || !r.core.bars.length) return;
+    out.serieGiornaliere.dati[r.t] = {
+      nome: r.name,
+      valuta: r.ccy || null,
+      barre: r.core.bars.map(b => [dayStr(localDay(b.t, r.core.off)), rd(b.o), rd(b.h), rd(b.l), rd(b.c), b.v || 0, rd(b.a)])
+    };
+  });
+
+  const n = Object.keys(out.serieGiornaliere.dati).length;
+  out.note = [
+    'I campi "relativo" e periodoRelativoPct sono rendimenti in eccesso rispetto al benchmark dell\'ambito indicato.',
+    'I rendimenti qui riportati usano ' + (state.tr ? 'la chiusura rettificata' : 'la chiusura semplice') +
+      '; le serie giornaliere contengono comunque entrambe le colonne, quindi si puo\' ricalcolare in entrambe le modalita\'.',
+    'forzaRelativa e momentum sono normalizzati sul gruppo (100 = media del gruppo): confrontabili solo tra voci dello stesso ambito.',
+    'L\'ambito "all" ricalcola la rotazione su settori e paesi insieme e usa ACWI: i suoi valori non coincidono con quelli di "sectors" e "countries".',
+    'Le serie giornaliere coprono circa 800 sedute e non dipendono dal periodo selezionato (' + n + ' strumenti).',
+    'accelerazione = rendimento a 1 mese meno un terzo del rendimento a 3 mesi.',
+    'Per riprodurre periodoAssolutoPct usare baseData/basePrezzo della voce: la finestra inizia a un istante (finestraInizioEsatto), quindi la sola data finestraDa non individua la barra di base.'
+  ];
+  return out;
+}
+
+function exportJSON(){
+  if (state.loading && !confirm('Il caricamento e\' ancora in corso. Esportare comunque i dati parziali?')) return;
+  let blob;
+  try {
+    blob = new Blob([JSON.stringify(buildExport())], { type:'application/json' });
+  } catch(e){
+    setDot('err', 'esportazione fallita');
+    return;
+  }
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  const name = 'rotationiq-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) +
+               '-' + p(d.getHours()) + p(d.getMinutes()) + '.json';
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  const kb = blob.size / 1024;
+  setDot('ok', 'scaricato · ' + (kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : Math.round(kb) + ' KB'));
+  setTimeout(() => {
+    if (state.loading) return;
+    const failed = ALL_ROWS.filter(isFailed).length;
+    setDot(failed ? 'err' : 'ok', failed ? (ALL_ROWS.length - failed) + '/' + ALL_ROWS.length + ' caricati' : 'aggiornato');
+  }, 4000);
+}
+
+$('btnExport').onclick = exportJSON;
 $('btnReload').onclick = () => loadAll(true);
 $('btnRetryFailed').onclick = retryFailed;
 $('btnCustom').onclick = () => {
